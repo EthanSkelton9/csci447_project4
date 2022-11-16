@@ -9,7 +9,7 @@ import numpy as np
 def main_Ian():
     def f1():
         DD = DataDictionary()
-        DD.dataobjects(False, ["SoyBean","Abalone","Glass", "Hardware", "BreastCancer", "ForestFires"])
+        data = DD.dataobject(True, "SoyBean")
     return f1()
 
 
