@@ -1,6 +1,7 @@
 from preprocessing import Preprocessing
 import pandas as pd
 from DataDictionary import DataDictionary
+from neuralNet import Neural_Net 
 import os
 import numpy as np
 
@@ -9,7 +10,9 @@ import numpy as np
 def main_Ian():
     def f1():
         DD = DataDictionary()
-        data = DD.dataobject(True, "SoyBean")
+        data = DD.dataobject(True, "Abalone")
+        NN  = Neural_Net(data)
+        NN.listofweights()
     return f1()
 
 
