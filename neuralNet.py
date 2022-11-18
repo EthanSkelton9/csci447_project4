@@ -3,6 +3,7 @@ import math
 import numpy as np
 import random
 from tail_recursive import tail_recursive
+import functools
 
 class Neural_Net:
 
@@ -22,6 +23,11 @@ class Neural_Net:
         def f(i):
             return np.array(data.df.loc[i, data.features_ohe])
 
+        return f
+
+    def linear_transformation(self, matrix):
+        def f(vector):
+            return matrix @ vector
         return f
 
 
@@ -49,6 +55,9 @@ class Neural_Net:
         else:
             return x * (1 - x)
 
+    def compose(self, f, g):
+        return lambda x: f(g(x))
+
     '''
     @param n: the row dimension
     @param m: the column dimension
@@ -68,21 +77,21 @@ class Neural_Net:
     @param: an ordered index of the classes
     @return: a function that takes an index of the data and returns a vector with a one in its corresponding class
     '''
-    def targetvec(self, classification, class_index = None):
+    def targetvec(self):
         '''
         @param i: an integer index
         @return: vector with all zeros except in the position of the example's class
         '''
         def f_classification(i):
             cl = self.data.df.at[i, "Target"]                         # Gives the class at this index
-            return np.array(class_index.map(lambda x: int(cl == x)))
+            return np.array(self.data.classes.map(lambda x: int(cl == x)))
         '''
         @param i: an integer index
         @return: a real number that is the target
         '''
         def f_regression(i):
             return self.data.df.at[i, "Target"]
-        return (f_classification if classification else f_regression)
+        return (f_classification if self.data.classes else f_regression)
 
     '''
     @param predicted: a series of predicted values
@@ -112,8 +121,28 @@ class Neural_Net:
             pred_class[i] = classes[index]
         # print(pred_class)
         return pred_class
- 
-        
+
+    def predict_set(self, df = None, n = None):
+        df = self.data.df if df is None else df
+        n = df.shape[0] if n is None else min(df.shape[0], n)
+        data_matrix = df.filter(items)
+        target_length = len(self.data.classes) if self.data.classes else 1
+        nrows = self.data.df.shape[1] - 1
+        def f(hidden_vector, ws = None):
+            ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length)) if ws is None else ws
+            return self.network_transformation(ws)()
+
+
+    def network_transformation(self, weights):
+        lin_trans = pd.Series(weights).map(self.linear_transformation)
+        def sigmoid_compose(f, g):
+            return self.compose(f, self.compose(self.sigmoid_v, g))
+        return functools.reduce(sigmoid_compose, lin_trans)
+
+
+
+
+
 
     '''
     @param vec_func: function that takes an index value and gives the sample from the dataset as a vector
@@ -160,44 +189,6 @@ class Neural_Net:
                 new_ss = None if ss is None else grads                                        #calculate new gradients
                 return f.tail_call(index_remaining[1:], new_ws, new_ss, y_acc + [(i, yi)])
         return f
-
-    def online_update_single(self, vec_func, r, eta, alpha, index):
-        '''
-        @param index_remaining: index left to iterate through
-        @param w: the current weight matrix
-        @param y_acc: the current set of accumulated predictions
-        @return: new index, final weight matrix, and complete set of predictions after iterated through index
-        '''
-
-        @tail_recursive
-        def f(index_remaining, ws, ss, y_acc):
-            if len(index_remaining) == 0:  # if there is nothing more to iterate through
-                y_idx, y_values = zip(*y_acc)  # unzip to get y index and y values
-                return (self.permute(index), ws, ss, pd.Series(y_values, y_idx))
-            else:
-                i = index_remaining[0]  # the next index value
-                x = vec_func(i)  # the next sample vector
-                zs = [x] + self.calc_Hidden(ws, x, len(ws) - 1)                   # the input and hidden layers
-                if self.data.classification:
-                    yi = np.vectorize(np.exp)(ws.iloc[-1] @ zs[-1]).reshape(1, -1)                 # gives the exponent at each component
-                    yi = yi / np.sum(yi)                                          # normalizes the vector
-                else:
-                    yi = (ws.iloc[-1] @ zs[-1])[0]                                # return a real value
-                error = np.array([r(i) - yi])                                     # return errors at each of the outputs
-                grads = []
-                wzs = zip(ws, zs)
-                previous_z = None
-                for (w, z) in list(wzs)[::-1]:
-                    grads = [np.outer(error * self.dsigmoid_v(previous_z), z)] + grads   # create gradient
-                    error = error @ w                                               # back propagate error
-                    previous_z = z
-                if alpha != 0:
-                    grads = pd.Series(zip(ss, grads)).map(lambda sg: alpha * sg[0] + (1-alpha) * sg[1]) #average grad
-                new_ws = pd.Series(zip(ws, grads)).map(lambda wg: wg[0] + eta * wg[1])           #calculate new weights
-                new_ss = None if ss is None else grads                                        #calculate new gradients
-                return (yi, i, grads, new_ws)
-        return f
-
 
 
     '''
