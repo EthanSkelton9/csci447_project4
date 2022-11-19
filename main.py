@@ -10,7 +10,7 @@ import numpy as np
 def main_Ian():
     def f1():
         DD = DataDictionary()
-        data = DD.dataobject(True, "Abalone")
+        data = DD.dataobject(True, "SoyBean")
         NN  = Neural_Net(data)
         result = NN.predict_set(20)([4, 4])
         print(result)

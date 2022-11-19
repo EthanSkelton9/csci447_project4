@@ -22,13 +22,22 @@ class Neural_Net:
         '''
         def f(i):
             return np.array(data.df.loc[i, data.features_ohe])
-
         return f
-
+    '''
+    @param matrix: a numpy matrix that represents the linear transformation
+    @return: a function that takes another matrix and multiplies by the first matrix
+    '''
     def linear_transformation(self, matrix):
         def f(matrix2):
             return matrix @ matrix2
         return f
+
+    '''
+    @param vector: a numpy vector
+    @return: a vector that has each entry divided by the sum of the original
+    '''
+    def prob_distribution(self, vector):
+        return vector / np.sum(vector)
 
 
     '''
@@ -54,9 +63,17 @@ class Neural_Net:
             return 1
         else:
             return x * (1 - x)
+    '''
+    @param f: left function
+    @param g: right function
+    @return: a composed function that evaluates the left function and then the right function
+    '''
+    def left_compose(self, f, g):
+        return lambda x: g(f(x))
 
-    def compose(self, f, g):
-        return lambda x: f(g(x))
+    def lcompose_fxns(self, f_list):
+        return functools.reduce(self.left_compose, f_list)
+
 
     '''
     @param n: the row dimension
@@ -113,38 +130,30 @@ class Neural_Net:
         else:
             return self.mean_squared_error(y, data.df.loc[y.index, "Target"]) 
         
-    def prediction(self, predicted, classes):
+    def prediction(self, predicted):
         pred_class = predicted.copy()
-        # print(predicted)
         for i in predicted.index:
             index = (np.where(predicted[i][0] == max(predicted[i][0])))[0][0]
-            pred_class[i] = classes[index]
-        # print(pred_class)
+            pred_class[i] = self.data.classes[index]
         return pred_class
 
     def predict_set(self, n = None, df = None):
-        df = self.data.df if df is None else df
-        n = df.shape[0] if n is None else min(df.shape[0], n)
+        df = df if df is not None else self.data.df
+        n = min(df.shape[0], n) if n is not None else df.shape[0]
         data_matrix = df.head(n).loc[:, self.data.features_ohe].to_numpy().transpose()
-        target_length = len(self.data.classes) if self.data.classes else 1
+        target_length = len(self.data.classes) if self.data.classes is not None else 1
         nrows = self.data.df.shape[1] - 1
         def f(hidden_vector, ws = None):
             ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length)) if ws is None else ws
-            print("Weights: {}".format(ws))
-            print("Data Matrix: {}".format(data_matrix))
             return self.network_transformation(ws)(data_matrix)
         return f
 
     def network_transformation(self, weights):
+        sigmoid_compose = lambda f, g: self.lcompose_fxns([f, self.sigmoid_v, g])
         lin_trans = pd.Series(weights).map(self.linear_transformation)
-        def sigmoid_compose(f, g):
-            return self.compose(f, self.compose(self.sigmoid_v, g))
-        return functools.reduce(sigmoid_compose, lin_trans)
-
-
-
-
-
+        nt = [functools.reduce(sigmoid_compose, lin_trans)]
+        extra =  [np.vectorize(np.exp), self.prob_distribution, self.prediction] if self.data.classification else []
+        return self.lcompose_fxns(nt + extra)
 
     '''
     @param vec_func: function that takes an index value and gives the sample from the dataset as a vector
