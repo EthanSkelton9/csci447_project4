@@ -12,7 +12,8 @@ def main_Ian():
         DD = DataDictionary()
         data = DD.dataobject(True, "Abalone")
         NN  = Neural_Net(data)
-        NN.listofweights()
+        result = NN.predict_set(20)([4, 4])
+        print(result)
     return f1()
 
 

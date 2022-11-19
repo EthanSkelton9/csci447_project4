@@ -26,8 +26,8 @@ class Neural_Net:
         return f
 
     def linear_transformation(self, matrix):
-        def f(vector):
-            return matrix @ vector
+        def f(matrix2):
+            return matrix @ matrix2
         return f
 
 
@@ -122,16 +122,18 @@ class Neural_Net:
         # print(pred_class)
         return pred_class
 
-    def predict_set(self, df = None, n = None):
+    def predict_set(self, n = None, df = None):
         df = self.data.df if df is None else df
         n = df.shape[0] if n is None else min(df.shape[0], n)
-        data_matrix = df.filter(items)
+        data_matrix = df.head(n).loc[:, self.data.features_ohe].to_numpy().transpose()
         target_length = len(self.data.classes) if self.data.classes else 1
         nrows = self.data.df.shape[1] - 1
         def f(hidden_vector, ws = None):
             ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length)) if ws is None else ws
-            return self.network_transformation(ws)()
-
+            print("Weights: {}".format(ws))
+            print("Data Matrix: {}".format(data_matrix))
+            return self.network_transformation(ws)(data_matrix)
+        return f
 
     def network_transformation(self, weights):
         lin_trans = pd.Series(weights).map(self.linear_transformation)
