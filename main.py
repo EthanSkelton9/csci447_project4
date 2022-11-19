@@ -13,7 +13,6 @@ def main_Ian():
         data = DD.dataobject(True, "SoyBean")
         NN  = Neural_Net(data)
         result = NN.predict_set(20)([4, 4])
-        print(result)
     return f1()
 
 

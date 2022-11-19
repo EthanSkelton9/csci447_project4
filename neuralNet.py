@@ -36,8 +36,8 @@ class Neural_Net:
     @param vector: a numpy vector
     @return: a vector that has each entry divided by the sum of the original
     '''
-    def prob_distribution(self, vector):
-        return vector / np.sum(vector)
+    def prob_distribution(self, matrix):
+        return matrix @ np.linalg.inv(np.diag(np.ones(matrix.shape[0]) @ matrix))
 
 
     '''
@@ -71,9 +71,13 @@ class Neural_Net:
     def left_compose(self, f, g):
         return lambda x: g(f(x))
 
+
+    '''
+    @param f_list: a list of functions
+    @return: a function that is the left composition of the given functions
+    '''
     def lcompose_fxns(self, f_list):
         return functools.reduce(self.left_compose, f_list)
-
 
     '''
     @param n: the row dimension
@@ -130,13 +134,34 @@ class Neural_Net:
         else:
             return self.mean_squared_error(y, data.df.loc[y.index, "Target"]) 
         
+    def predict_matrix(self, predicted):
+        mdf = pd.DataFrame(predicted.transpose())
+        getclass = lambda i: self.data.classes[mdf.loc[i, :].map(lambda x: x == max(mdf.loc[i, :]))][0]
+        return mdf.index.map(getclass)
+
     def prediction(self, predicted):
         pred_class = predicted.copy()
+        # print(predicted)
         for i in predicted.index:
             index = (np.where(predicted[i][0] == max(predicted[i][0])))[0][0]
             pred_class[i] = self.data.classes[index]
+        # print(pred_class)
         return pred_class
+    '''
+    @param weights: a list of matrices
+    @return: a function that takes a vector of features through the network
+    '''
+    def network_transformation(self, weights):
+        sigmoid_compose = lambda f, g: self.lcompose_fxns([f, self.sigmoid_v, g])
+        lin_trans = pd.Series(weights).map(self.linear_transformation)
+        nt = functools.reduce(sigmoid_compose, lin_trans)
+        extra =  [np.vectorize(np.exp), self.prob_distribution, self.predict_matrix] if self.data.classification else []
+        return self.lcompose_fxns([nt] + extra)
 
+    '''
+    @param n: the size of the data subset we are predicting
+    @param df: the data set we are predicting on
+    '''
     def predict_set(self, n = None, df = None):
         df = df if df is not None else self.data.df
         n = min(df.shape[0], n) if n is not None else df.shape[0]
@@ -147,13 +172,6 @@ class Neural_Net:
             ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length)) if ws is None else ws
             return self.network_transformation(ws)(data_matrix)
         return f
-
-    def network_transformation(self, weights):
-        sigmoid_compose = lambda f, g: self.lcompose_fxns([f, self.sigmoid_v, g])
-        lin_trans = pd.Series(weights).map(self.linear_transformation)
-        nt = [functools.reduce(sigmoid_compose, lin_trans)]
-        extra =  [np.vectorize(np.exp), self.prob_distribution, self.prediction] if self.data.classification else []
-        return self.lcompose_fxns(nt + extra)
 
     '''
     @param vec_func: function that takes an index value and gives the sample from the dataset as a vector
@@ -327,7 +345,7 @@ class Neural_Net:
     def classification_error(self, predictions):
         error = 0
         length = len(predictions)
-        predictions = pd.DataFrame(self.prediction(predictions, self.data.classes))
+        predictions = pd.DataFrame(self.prediction(predictions))
         predictions["Target"] = self.data.df["Target"]
         for i in predictions.index:
             pred = predictions.loc[i][0]
