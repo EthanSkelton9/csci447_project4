@@ -1,6 +1,7 @@
 from preprocessing import Preprocessing
 import pandas as pd
 from DataDictionary import DataDictionary
+from neuralNet import Neural_Net 
 import os
 import numpy as np
 
@@ -9,7 +10,12 @@ import numpy as np
 def main_Ian():
     def f1():
         DD = DataDictionary()
-        DD.dataobjects(False, ["SoyBean","Abalone","Glass", "Hardware", "BreastCancer", "ForestFires"])
+        data = DD.dataobject(True, "Abalone")
+        NN  = Neural_Net(data)
+        result = NN.predict_set()([4, 4])
+        print("Result: {}".format(result))
+        print("Classes: {}".format(data.classes))
+        print("Target: {}".format(NN.targetdf()))
     return f1()
 
 
