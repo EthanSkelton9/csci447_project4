@@ -39,7 +39,6 @@ class Neural_Net:
     def prob_distribution(self, matrix):
         return matrix @ np.linalg.inv(np.diag(np.ones(matrix.shape[0]) @ matrix))
 
-
     '''
     @param x: a real number
     @return: the sigmoid value
@@ -70,7 +69,6 @@ class Neural_Net:
     '''
     def left_compose(self, f, g):
         return lambda x: g(f(x))
-
 
     '''
     @param f_list: a list of functions
@@ -108,11 +106,32 @@ class Neural_Net:
         return f_classification() if self.data.classes is not None else targets
 
     '''
+    @param pred_vec: a numpy vector of predicted values
+    @return: mean squared error
+    '''
+    def mse_np(self, pred_vec):
+        actual_vec = np.array(self.targetdf())
+        return math.pow(np.linalg.norm(pred_vec - actual_vec), 2) / len(pred_vec)
+    '''
+    @param pred_df: a matrix showing predicted probabilities for respective classes
+    @return: cross entropy error
+    '''
+    def ce_np(self, pred_matrix):
+        return - np.sum(np.sum(self.targetdf() * np.vectorize(np.log)(np.transpose(pred_matrix))))
+    '''
+    @param pred: numpy array of predictions
+    @return: the appropriate error
+    '''
+    def error_np(self, pred):
+        return self.ce_np(pred) if self.data.classification else self.mse_np(pred)
+
+    '''
     @param predicted: a series of predicted values
     @param actual: a series of actual target values
     @return: the mean squared error
     '''
-    def mean_squared_error(self, predicted, actual):
+    def mean_squared_error(self, predicted):
+        actual = self.data.df.loc[predicted.index, "Target"]
         return math.pow(np.linalg.norm(predicted.to_numpy() - actual.to_numpy()), 2) / len(predicted)
     
     def cross_entropy(self, predicted, targetvec):
@@ -125,7 +144,7 @@ class Neural_Net:
         if data.classification:
             return self.cross_entropy(y,  r)
         else:
-            return self.mean_squared_error(y, data.df.loc[y.index, "Target"])
+            return self.mean_squared_error(y)
 
     '''
     @param predicted: numpy array of predicted values
@@ -140,7 +159,7 @@ class Neural_Net:
     '''
     def predict_classes(self, pred_df):
         getclass = lambda i: self.data.classes[pred_df.loc[i, :].map(lambda x: x == max(pred_df.loc[i, :]))][0]
-        return pred_df.index.map(getclass)
+        return pd.Series(pred_df.index.map(getclass))
 
     def prediction(self, predicted):
         pred_class = predicted.copy()
@@ -154,17 +173,19 @@ class Neural_Net:
     @param weights: a list of matrices
     @return: a function that takes a vector of features through the network
     '''
-    def network_transformation(self, weights):
+    def network_transformation(self, weights, error = False):
         sigmoid_compose = lambda f, g: self.lcompose_fxns([f, self.sigmoid_v, g])
         lin_trans = pd.Series(weights).map(self.linear_transformation)
         nt = functools.reduce(sigmoid_compose, lin_trans)
         (exp, probdist, ser, pred) = (np.vectorize(np.exp), self.prob_distribution, self.to_series, self.predict_classes)
-        f_list = [nt, exp, probdist, ser, pred] if self.data.classification else [nt, ser]
+        (beg, end) = ([nt, exp, probdist], [ser, pred]) if self.data.classification else ([nt], [ser])
+        f_list = beg + [self.error_np] if error else beg + end
         return self.lcompose_fxns(f_list)
 
     '''
     @param n: the size of the data subset we are predicting
     @param df: the data set we are predicting on
+    @return: a function that takes a hidden vector and weights and returns predicted values or error
     '''
     def predict_set(self, n = None, df = None):
         df = df if df is not None else self.data.df
@@ -172,9 +193,20 @@ class Neural_Net:
         data_matrix = df.head(n).loc[:, self.data.features_ohe].to_numpy().transpose()
         target_length = len(self.data.classes) if self.data.classes is not None else 1
         nrows = self.data.df.shape[1] - 1
-        def f(hidden_vector, ws = None):
+        def f(hidden_vector, ws = None, error = False):
             ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length)) if ws is None else ws
-            return self.network_transformation(ws)(data_matrix)
+            return self.network_transformation(ws, error)(data_matrix)
+        return f
+
+    '''
+    @param n: the size of the data subset we are predicting
+    @param df: the data set we are predicting on
+    @return: a function that takes a hidden vector and weights and returns the fitness
+    '''
+    def fitness(self, n = None, df = None):
+        pred_set = self.predict_set(n, df)
+        def f(hidden_vector, ws = None):
+            return 1 / pred_set(hidden_vector, ws, error = True)
         return f
 
     '''
@@ -185,7 +217,6 @@ class Neural_Net:
     @return ((permuted index, final weight vector), series of predicted target values)
     @used in: stochastic_online_gd
     '''
-
     def online_update(self, vec_func, r, eta, alpha, index):
         '''
         @param index_remaining: index left to iterate through
