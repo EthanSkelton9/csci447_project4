@@ -98,21 +98,14 @@ class Neural_Net:
     @param: an ordered index of the classes
     @return: a function that takes an index of the data and returns a vector with a one in its corresponding class
     '''
-    def targetvec(self):
-        '''
-        @param i: an integer index
-        @return: vector with all zeros except in the position of the example's class
-        '''
-        def f_classification(i):
-            cl = self.data.df.at[i, "Target"]                         # Gives the class at this index
-            return np.array(self.data.classes.map(lambda x: int(cl == x)))
-        '''
-        @param i: an integer index
-        @return: a real number that is the target
-        '''
-        def f_regression(i):
-            return self.data.df.at[i, "Target"]
-        return (f_classification if self.data.classes else f_regression)
+    def targetdf(self):
+        targets = self.data.df.loc[:, "Target"]
+        def f_classification():
+            mdf = pd.DataFrame(np.zeros((self.data.df.shape[0], len(self.data.classes))))
+            for i in mdf.index:
+                mdf.loc[i, :] = self.data.classes.map(lambda cl: int(cl == targets[i]))
+            return mdf
+        return f_classification() if self.data.classes is not None else targets
 
     '''
     @param predicted: a series of predicted values
@@ -132,12 +125,22 @@ class Neural_Net:
         if data.classification:
             return self.cross_entropy(y,  r)
         else:
-            return self.mean_squared_error(y, data.df.loc[y.index, "Target"]) 
-        
-    def predict_matrix(self, predicted):
-        mdf = pd.DataFrame(predicted.transpose())
-        getclass = lambda i: self.data.classes[mdf.loc[i, :].map(lambda x: x == max(mdf.loc[i, :]))][0]
-        return mdf.index.map(getclass)
+            return self.mean_squared_error(y, data.df.loc[y.index, "Target"])
+
+    '''
+    @param predicted: numpy array of predicted values
+    @return: a pandas series
+    '''
+    def to_series(self, predicted):
+        return pd.DataFrame(predicted.transpose())
+
+    '''
+    @param pred_df: a dataframe of probabilities that it is the respective class
+    @return: pandas index of predicted classes
+    '''
+    def predict_classes(self, pred_df):
+        getclass = lambda i: self.data.classes[pred_df.loc[i, :].map(lambda x: x == max(pred_df.loc[i, :]))][0]
+        return pred_df.index.map(getclass)
 
     def prediction(self, predicted):
         pred_class = predicted.copy()
@@ -155,8 +158,9 @@ class Neural_Net:
         sigmoid_compose = lambda f, g: self.lcompose_fxns([f, self.sigmoid_v, g])
         lin_trans = pd.Series(weights).map(self.linear_transformation)
         nt = functools.reduce(sigmoid_compose, lin_trans)
-        extra =  [np.vectorize(np.exp), self.prob_distribution, self.predict_matrix] if self.data.classification else []
-        return self.lcompose_fxns([nt] + extra)
+        (exp, probdist, ser, pred) = (np.vectorize(np.exp), self.prob_distribution, self.to_series, self.predict_classes)
+        f_list = [nt, exp, probdist, ser, pred] if self.data.classification else [nt, ser]
+        return self.lcompose_fxns(f_list)
 
     '''
     @param n: the size of the data subset we are predicting

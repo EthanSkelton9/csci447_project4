@@ -10,9 +10,12 @@ import numpy as np
 def main_Ian():
     def f1():
         DD = DataDictionary()
-        data = DD.dataobject(True, "SoyBean")
+        data = DD.dataobject(True, "Abalone")
         NN  = Neural_Net(data)
-        result = NN.predict_set(20)([4, 4])
+        result = NN.predict_set()([4, 4])
+        print("Result: {}".format(result))
+        print("Classes: {}".format(data.classes))
+        print("Target: {}".format(NN.targetdf()))
     return f1()
 
 
