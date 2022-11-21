@@ -52,7 +52,8 @@ class DataDictionary:
         replace = None
         target_name = 'Rings'
         classification = False
-        return (name, file, columns, target_name, replace, False)
+        hidden_vectors = (None, None)  #Fill This Out
+        return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def breastcancer(self):
         name = "BreastCancer"
@@ -72,7 +73,8 @@ class DataDictionary:
         target_name = 'Class'
         replace = '3'
         classification = True
-        return (name, file, columns, target_name, replace, classification)
+        hidden_vectors = (None, None)  #Fill This Out
+        return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def forestfires(self):
         name = "ForestFires"
@@ -94,7 +96,8 @@ class DataDictionary:
         replace = None
         target_name = 'Area'
         classification = False
-        return (name, file, columns, target_name, replace, classification)
+        hidden_vectors = (None, None)  # Fill This Out
+        return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def glass(self):
         name = "Glass"
@@ -114,7 +117,8 @@ class DataDictionary:
         target_name = 'Class'
         replace = None
         classification = True
-        return (name, file, columns, target_name, replace, classification)
+        hidden_vectors = (None, None)  # Fill This Out
+        return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def hardware(self):
         name = "Hardware"
@@ -133,7 +137,8 @@ class DataDictionary:
         target_name = 'PRP'
         replace = None
         classification = False
-        return (name, file, columns, target_name, replace, classification)
+        hidden_vectors = (None, None)  # Fill This Out
+        return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def soybean(self):
         name = "SoyBean"
@@ -178,4 +183,5 @@ class DataDictionary:
         replace = None
         target_name = 'Class'
         classification = True
-        return (name, file, columns, target_name, replace, classification)
+        hidden_vectors = (None, None)  # Fill This Out
+        return (name, file, columns, target_name, replace, classification, hidden_vectors)
