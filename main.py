@@ -37,10 +37,13 @@ def main_Ian():
 
 
 def mainEthan(): 
-    pass  
+    DD = DataDictionary()
+    data = DD.dataobject(True, "ForestFires")
+    NN  = Neural_Net(data)  
+    NN.listofweights()
     
 if __name__=="__main__":
-    main_Ian()
-    #main()
+    #main_Ian()
+    mainEthan()
 
     

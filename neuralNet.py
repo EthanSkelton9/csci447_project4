@@ -425,18 +425,48 @@ class Neural_Net:
             return i - 1
         return f
 
+    #turn a matrix into a list
     def matrix_to_list(self, matrix):
-        return matrix[0].tolist()
-    def list_to_matrix(self, list):
-        return np.array(list)
+        newlist = []
+        
+        for i in range(len(matrix)):
+            for j in range(len(matrix[i])):
+                for k in range(len(matrix[i][j])):
+                    newlist.append(matrix[i][j][k])
+        return newlist
+    
+    
+    #turn a list back into a matrix
+    def list_to_matrix(self, list, hiddenlayers):
+        listoflists = []
+        indexList = 0
+        for i in range(len(hiddenlayers)-1):
+            innerlist = []
+            for j in range(hiddenlayers[i + 1]):
+                innerinnerlist = []
+                for k in range(hiddenlayers[i]):
+                    innerinnerlist.append(list[indexList])
+                    indexList += 1
+                innerlist.append(innerinnerlist)
+            listoflists.append(innerlist)
+        return np.array(listoflists, dtype = object )
+        
 
     #driver to see if i can create matrix from list and vice versa
     def listofweights(self):
+        target = 1
+        if (self.data.classification):
+            target = len(self.data.Target.unique())
+        hiddenlayers = [3,4]
         nfeature = len(self.data.columns)
-        matrix = self.list_weights(nfeature,[3,4], 1)
+        matrix = self.list_weights(nfeature, hiddenlayers, 1)
+        print(matrix)
+        
+        hiddenlayers.insert(0,nfeature)
+        hiddenlayers.append(target)
         list = self.matrix_to_list(matrix)
         print("matrix to list -------------")
         print(list)
-        matrix2 = self.list_to_matrix(list)
+        matrix2 = self.list_to_matrix(list, hiddenlayers)
         print("list to matrix -----------")
         print(matrix2)
