@@ -425,6 +425,30 @@ class Neural_Net:
             return i - 1
         return f
 
+    
+    def crossover(self, p1, p2):
+        #finds the length of the chromosome
+        length = len(p1)
+        
+        #sets each chromosome to a list so we can manipulate them
+        p1 = list(p1)
+        p2 = list(p2)
+        
+        #find a random place to split the chromosome on
+        k = random.randint(0, length)
+        
+        #go through and create the kids
+        for i in range(k, length):
+            p1[i], p2[i] = p2[i], p1[i]
+        p1 = ''.join(p1)
+        p2 = ''.join(p2)
+        #return the kids
+        return p1, p2
+        
+    
+    def mutation(self):
+        pass
+
     #turn a matrix into a list
     def matrix_to_list(self, matrix):
         newlist = []
