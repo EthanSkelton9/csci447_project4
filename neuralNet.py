@@ -425,7 +425,13 @@ class Neural_Net:
             return i - 1
         return f
 
+    '''
+    crossover : with two parents create two new children for the next genereation
+    @param p1: parent 1 
+    @param p2: parent 2
     
+    @return p1: kid 1, p2: kid 2
+    '''
     def crossover(self, p1, p2):
         #finds the length of the chromosome
         length = len(p1)
@@ -445,9 +451,19 @@ class Neural_Net:
         #return the kids
         return p1, p2
         
+    '''
+    mutation: send in a chromosome and change it by a certain value
     
-    def mutation(self):
-        pass
+    @param chromosome : the set of strings that make up the chromosome
+    
+    @return chromosome : new mutated chromosome
+    '''
+    def mutation(self, chromosome):
+        rand_num = random.uniform(-1, 1) #uniform number to add or subtract by
+        
+        chromosome += rand_num #add random number
+        
+        return chromosome
 
     #turn a matrix into a list
     def matrix_to_list(self, matrix):
