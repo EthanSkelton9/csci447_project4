@@ -198,16 +198,6 @@ class Neural_Net:
             return self.network_transformation(ws, error)(data_matrix)
         return f
 
-    '''
-    @param n: the size of the data subset we are predicting
-    @param df: the data set we are predicting on
-    @return: a function that takes a hidden vector and weights and returns the fitness
-    '''
-    def fitness(self, n = None, df = None):
-        pred_set = self.predict_set(n, df)
-        def f(ws = None, hidden_vector = None):
-            return 1 / pred_set(ws, hidden_vector, error = True)
-        return f
 
     '''
     @param vec_func: function that takes an index value and gives the sample from the dataset as a vector

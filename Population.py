@@ -2,6 +2,7 @@ from neuralNet import Neural_Net
 import pandas as pd
 import numpy as np
 import functools
+import random
 class Population:
     def __init__(self, data):
         self.data = data
@@ -17,12 +18,35 @@ class Population:
         #hidden_vector = self.data.hidden_vectors[hidden_layers_num - 1]    Need to set up default hidden vectors
         hidden_vector = [3, 2]
         weight_list = pd.Series(50 * [0]).map(lambda i: self.NN.list_weights(nrows, hidden_vector, target_length))
-        fitness_list = weight_list.map(lambda ws: self.NN.fitness()(ws = ws))
+        fitness_list = weight_list.map(lambda ws: self.fitness()(ws = ws))
         prob_list = self.NN.prob_distribution(fitness_list.to_numpy().reshape(-1, 1)).flatten()
-        addLocation = lambda locs, prob: locs + [locs[-1] + prob] if len(locs) > 0 else [prob]
-        loc_list = functools.reduce(addLocation, prob_list, [])
+        loc_list = prob_list.cumsum()
         df = pd.DataFrame({"Weights": weight_list, "Fitness": fitness_list,
                            "Probability": prob_list, "Location": loc_list})
         return df
+
+    '''
+    @param n: the size of the data subset we are predicting
+    @param df: the data set we are predicting on
+    @return: a function that takes a hidden vector and weights and returns the fitness
+    '''
+    def fitness(self, n=None, df=None):
+        pred_set = self.NN.predict_set(n, df)
+
+        def f(ws=None, hidden_vector=None):
+            return 1 / pred_set(ws, hidden_vector, error=True)
+
+        return f
+
+    '''
+    @param pop_df: the dataframe that represents a population
+    @return: a tuple of indices used for the chosen parents
+    '''
+    def chooseParents(self, pop_df):
+        l = pop_df["Location"]
+        (r1, r2) = (random.random(), random.random())
+        return tuple(pd.Series([r1, r2]).map(lambda r: l.loc[l.map(lambda l: l > r)].index[0]))
+
+
 
 

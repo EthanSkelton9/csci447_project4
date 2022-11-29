@@ -41,7 +41,7 @@ def main_Ian(i):
         P = Population(data)
         population = P.createPopulationWeights([3, 2])
         print(population)
-        print(population.at[0, "Weights"])
+        print(P.chooseParents(population))
 
 def mainEthan(): 
     DD = DataDictionary()
