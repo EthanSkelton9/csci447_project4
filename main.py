@@ -39,7 +39,7 @@ def main_Ian(i):
         DD = DataDictionary()
         data = DD.dataobject(True, "Abalone")
         P = Population(data)
-        population = P.createPopulationWeights([3, 2])
+        population = P.createPopulationWeights([3, 2], 50)
         print(population)
         print(P.chooseParents(population))
 
