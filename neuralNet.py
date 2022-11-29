@@ -101,9 +101,9 @@ class Neural_Net:
         def f_classification():
             mdf = pd.DataFrame(np.zeros((self.data.df.shape[0], len(self.data.classes))))
             for i in mdf.index:
-                mdf.loc[i, :] = self.data.classes.map(lambda cl: int(cl == targets[i]))
-            return mdf
-        return f_classification() if self.data.classes is not None else targets
+                mdf.loc[i, :] = self.data.classes.map(lambda cl: int(cl == targets[i])) #Give this example a row with a one in the corresponding class
+            return mdf  #Return onehot encoded dataframe
+        return f_classification() if self.data.classes is not None else targets  #Return series of target values
 
     '''
     @param pred_vec: a numpy vector of predicted values
@@ -193,8 +193,8 @@ class Neural_Net:
         data_matrix = df.head(n).loc[:, self.data.features_ohe].to_numpy().transpose()
         target_length = len(self.data.classes) if self.data.classes is not None else 1
         nrows = self.data.df.shape[1] - 1
-        def f(hidden_vector, ws = None, error = False):
-            ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length)) if ws is None else ws
+        def f(ws = None, hidden_vector = None, error = False):
+            if ws is None: ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length))
             return self.network_transformation(ws, error)(data_matrix)
         return f
 
@@ -205,8 +205,8 @@ class Neural_Net:
     '''
     def fitness(self, n = None, df = None):
         pred_set = self.predict_set(n, df)
-        def f(hidden_vector, ws = None):
-            return 1 / pred_set(hidden_vector, ws, error = True)
+        def f(ws = None, hidden_vector = None):
+            return 1 / pred_set(ws, hidden_vector, error = True)
         return f
 
     '''
@@ -498,7 +498,7 @@ class Neural_Net:
         if (self.data.classification):
             target = len(self.data.Target.unique())
         hiddenlayers = [3,4]
-        nfeature = len(self.data.columns)
+        nfeature = len(self.data.columns)   # nrows = NN.data.df.shape[1] - 1
         matrix = self.list_weights(nfeature, hiddenlayers, 1)
         print(matrix)
         
