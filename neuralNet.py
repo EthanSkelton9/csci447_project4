@@ -478,25 +478,30 @@ class Neural_Net:
                     innerinnerlist.append(list[indexList])
                     indexList += 1
                 innerlist.append(innerinnerlist)
-            listoflists.append(innerlist)
-        return np.array(listoflists, dtype = object )
+            listoflists.append(np.array(innerlist))
+        return listoflists
         
 
     #driver to see if i can create matrix from list and vice versa
     def listofweights(self):
         target = 1
+
         if (self.data.classification):
-            target = len(self.data.Target.unique())
+            target = len(self.data.df.Target.unique())
+
         hiddenlayers = [3,4]
-        nfeature = len(self.data.columns)   # nrows = NN.data.df.shape[1] - 1
+        nfeature = self.data.df.shape[1] - 1
+
         matrix = self.list_weights(nfeature, hiddenlayers, 1)
         print(matrix)
-        
+
         hiddenlayers.insert(0,nfeature)
         hiddenlayers.append(target)
+
         list = self.matrix_to_list(matrix)
         print("matrix to list -------------")
         print(list)
+
         matrix2 = self.list_to_matrix(list, hiddenlayers)
         print("list to matrix -----------")
         print(matrix2)
