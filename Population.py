@@ -12,17 +12,19 @@ class Population:
     @param hidden_layers_num
     @return: a pandas data frame that has randomly generated weights with fitness, probability, and location
     '''
-    def createPopulationWeights(self, hidden_layers_num):
+    def createPopulationWeights(self, hidden_layers_num, size = 50):
         target_length = len(self.data.classes) if self.data.classes is not None else 1
         nrows = self.data.df.shape[1] - 1
         #hidden_vector = self.data.hidden_vectors[hidden_layers_num - 1]    Need to set up default hidden vectors
         hidden_vector = [3, 2]
-        weight_list = pd.Series(50 * [0]).map(lambda i: self.NN.list_weights(nrows, hidden_vector, target_length))
+        weight_list = pd.Series(size * [0]).map(lambda i: self.NN.list_weights(nrows, hidden_vector, target_length))
+        chromosome_list = weight_list.map(self.NN.matrix_to_list)
         fitness_list = weight_list.map(lambda ws: self.fitness()(ws = ws))
         prob_list = self.NN.prob_distribution(fitness_list.to_numpy().reshape(-1, 1)).flatten()
         loc_list = prob_list.cumsum()
-        df = pd.DataFrame({"Weights": weight_list, "Fitness": fitness_list,
+        df = pd.DataFrame({"Chromosome": chromosome_list, "Fitness": fitness_list,
                            "Probability": prob_list, "Location": loc_list})
+        df.to_csv("InitialPopulation.csv")
         return df
 
     '''
