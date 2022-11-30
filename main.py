@@ -33,15 +33,18 @@ def main_Ian(i):
         chr = NN.matrix_to_list(ws)
         print("Chromosome? {}".format(chr))
         print("Number of Entries in List of Weights: {}".format(len(chr)))
-        print("Back to Weights: {}".format(NN.list_to_matrix(chr, [3, 2])))
-        NN.listofweights()
+        print("Back to Weights")
+        print(NN.list_to_matrix(chr, [10, 3, 2, 1]))
+        #NN.listofweights()
     if i == 3:
         DD = DataDictionary()
         data = DD.dataobject(True, "Abalone")
         P = Population(data)
         population = P.createPopulationWeights([3, 2], 50)
         print(population)
-        print(P.chooseParents(population))
+        (p1, p2) = P.chooseParents(population)
+        (c1, c2) = (population.at[p1, "Chromosome"], population.at[p2, "Chromosome"])
+        print(P.NN.crossover(c1, c2))
 
 def mainEthan(): 
     DD = DataDictionary()
@@ -50,7 +53,7 @@ def mainEthan():
     NN.listofweights()
     
 if __name__=="__main__":
-   # main_Ian(3)
-    mainEthan()
+    main_Ian(3)
+    #mainEthan()
 
     

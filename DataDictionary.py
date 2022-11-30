@@ -52,7 +52,7 @@ class DataDictionary:
         replace = None
         target_name = 'Rings'
         classification = False
-        hidden_vectors = (None, None)  #Fill This Out
+        hidden_vectors = ([4], [4, 4])
         return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def breastcancer(self):
@@ -73,7 +73,7 @@ class DataDictionary:
         target_name = 'Class'
         replace = '3'
         classification = True
-        hidden_vectors = (None, None)  #Fill This Out
+        hidden_vectors = ([3], [3, 3])
         return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def forestfires(self):
@@ -96,7 +96,7 @@ class DataDictionary:
         replace = None
         target_name = 'Area'
         classification = False
-        hidden_vectors = (None, None)  # Fill This Out
+        hidden_vectors = ([1], [1, 1])
         return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def glass(self):
@@ -117,7 +117,7 @@ class DataDictionary:
         target_name = 'Class'
         replace = None
         classification = True
-        hidden_vectors = (None, None)  # Fill This Out
+        hidden_vectors = ([3], [3, 3])
         return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def hardware(self):
@@ -137,7 +137,7 @@ class DataDictionary:
         target_name = 'PRP'
         replace = None
         classification = False
-        hidden_vectors = (None, None)  # Fill This Out
+        hidden_vectors = ([3], [2, 2])
         return (name, file, columns, target_name, replace, classification, hidden_vectors)
 
     def soybean(self):
@@ -183,5 +183,5 @@ class DataDictionary:
         replace = None
         target_name = 'Class'
         classification = True
-        hidden_vectors = (None, None)  # Fill This Out
+        hidden_vectors = ([1], [1, 1])
         return (name, file, columns, target_name, replace, classification, hidden_vectors)
