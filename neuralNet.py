@@ -426,18 +426,13 @@ class Neural_Net:
         #finds the length of the chromosome
         length = len(p1)
         
-        #sets each chromosome to a list so we can manipulate them
-        p1 = list(p1)
-        p2 = list(p2)
-        
         #find a random place to split the chromosome on
         k = random.randint(0, length)
         
         #go through and create the kids
         for i in range(k, length):
             p1[i], p2[i] = p2[i], p1[i]
-        p1 = ''.join(p1)
-        p2 = ''.join(p2)
+            
         #return the kids
         return p1, p2
         
@@ -467,8 +462,18 @@ class Neural_Net:
     
     
     #turn a list back into a matrix
-    def list_to_matrix(self, list, hiddenlayers):
+    def list_to_matrix(self, list, numhidden):
         listoflists = []
+        target = 1
+
+        if (self.data.classification):
+            target = len(self.data.df.Target.unique())
+            
+        hiddenlayers = self.df.hiddenvector[numhidden] #check
+        nfeature = self.data.df.shape[1] - 1
+        hiddenlayers.insert(0,nfeature)
+        hiddenlayers.append(target)
+        
         indexList = 0
         for i in range(len(hiddenlayers)-1):
             innerlist = []
@@ -502,6 +507,6 @@ class Neural_Net:
         print("matrix to list -------------")
         print(list)
 
-        matrix2 = self.list_to_matrix(list, hiddenlayers)
+        matrix2 = self.list_to_matrix(list, 2)
         print("list to matrix -----------")
         print(matrix2)
