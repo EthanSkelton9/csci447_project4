@@ -44,7 +44,7 @@ class Population:
     @param pop_df: the dataframe that represents a population
     @return: a tuple of indices used for the chosen parents
     '''
-    def chooseParents(self, pop_df):
+    def selection(self, pop_df):
         l = pop_df["Location"]
         (r1, r2) = (random.random(), random.random())
         return tuple(pd.Series([r1, r2]).map(lambda r: l.loc[l.map(lambda l: l > r)].index[0]))
