@@ -428,6 +428,7 @@ class Neural_Net:
         
         #find a random place to split the chromosome on
         k = random.randint(0, length)
+        print("K: {}".format(k))
         
         #go through and create the kids
         for i in range(k, length):
@@ -435,6 +436,11 @@ class Neural_Net:
             
         #return the kids
         return p1, p2
+
+    def crossover_Ian(self, p1, p2):
+        k = random.randint(0, len(p1))
+        print("K: {}".format(k))
+        return (p1[0:k] + p2[k:], p2[0:k] + p1[k:])
         
     '''
     mutation: send in a chromosome and change it by a certain value
