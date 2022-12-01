@@ -44,8 +44,9 @@ def main_Ian(i):
         print(population)
         (p1, p2) = P.chooseParents(population)
         (c1, c2) = (population.at[p1, "Chromosome"], population.at[p2, "Chromosome"])
-        print(P.NN.crossover(c1, c2))
-
+        print(c1)
+        c1, c2 = P.NN.crossover(c1, c2)
+        print(c1)
 def mainEthan(): 
     DD = DataDictionary()
     data = DD.dataobject(True, "ForestFires")
@@ -53,7 +54,7 @@ def mainEthan():
     NN.listofweights()
     
 if __name__=="__main__":
-    main_Ian(3)
-    #mainEthan()
+    #main_Ian(3)
+    mainEthan()
 
     
