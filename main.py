@@ -18,7 +18,8 @@ def main_Ian(i):
         target_length = len(NN.data.classes) if NN.data.classes is not None else 1
         nrows = NN.data.df.shape[1] - 1
         print("nrows: {}".format(nrows))
-        hidden_vector = data.hidden_vectors[1]
+        #hidden_vector = data.hidden_vectors[1]
+        hidden_vector = []
         ws = NN.list_weights(nrows, hidden_vector, target_length)
         print("Weights: {}:".format(ws))
         num_genes = 0
@@ -30,30 +31,16 @@ def main_Ian(i):
         print("Chromosome? {}".format(chr))
         print("Number of Genes in Chromosome: {}".format(len(chr)))
         print("Back to Weights")
-        print(NN.list_to_matrix(chr, 2))
+        print(NN.list_to_matrix(chr, 0))
         #NN.listofweights()
     if i == 3:
         DD = DataDictionary()
         data = DD.dataobject(True, "Abalone")
         P = Population(data)
-        population = P.createPopulationWeights([3, 2], 50)
-        print(population)
-        (pi1, pi2) = P.selection(population)
-        (p1, p2) = tuple(population.loc[[pi1, pi2], "Chromosome"])
-        (c1, c2) = P.NN.crossover(p1, p2)
-        print("Parent 1: {}".format(p1))
-        print("Child 1: {}".format(c1))
-        print("Parent 2: {}".format(p2))
-        print("Child 2: {}".format(c2))
-        print("---")
-        print("Try Ian's Code")
-        print("---")
-        (c1, c2) = P.NN.crossover_Ian(p1, p2)
-        print("Parent 1: {}".format(p1))
-        print("Child 1: {}".format(c1))
-        print("Parent 2: {}".format(p2))
-        print("Child 2: {}".format(c2))
-
+        population = P.createPopulation(2, 50)
+        population.to_csv("InitialPopulation.csv")
+        newpopulation = P.generation(2, population, 0.8)
+        newpopulation.to_csv("AfterOneGeneration.csv")
 
 
 def mainEthan(): 
@@ -63,7 +50,8 @@ def mainEthan():
     NN.listofweights()
     
 if __name__=="__main__":
-    main_Ian(2)
+    main_Ian(3)
     #mainEthan()
+
 
     

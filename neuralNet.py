@@ -423,23 +423,7 @@ class Neural_Net:
     @return p1: kid 1, p2: kid 2
     '''
     def crossover(self, p1, p2):
-        #finds the length of the chromosome
-        length = len(p1)
-        
-        #find a random place to split the chromosome on
-        k = random.randint(0, length)
-        print("K: {}".format(k))
-        
-        #go through and create the kids
-        for i in range(k, length):
-            p1[i], p2[i] = p2[i], p1[i]
-            
-        #return the kids
-        return p1, p2
-
-    def crossover_Ian(self, p1, p2):
         k = random.randint(0, len(p1))
-        print("K: {}".format(k))
         return (p1[0:k] + p2[k:], p2[0:k] + p1[k:])
         
     '''
@@ -468,24 +452,25 @@ class Neural_Net:
     
     
     #turn a list back into a matrix
-    def list_to_matrix(self, list, numhidden):
+    def list_to_matrix_I(self, list, numhidden):
         listoflists = []
         target = 1
 
         if (self.data.classification):
             target = len(self.data.df.Target.unique())
             
-        hiddenlayers = self.data.df.hiddenvector[numhidden] #check
+        hiddenlayers = self.data.hidden_vectors[numhidden-1] #check
         nfeature = self.data.df.shape[1] - 1
-        hiddenlayers.insert(0,nfeature)
-        hiddenlayers.append(target)
+        layers = [nfeature] + hiddenlayers + [target]
+        #hiddenlayers.insert(0,nfeature)
+        #hiddenlayers.append(target)
         
         indexList = 0
-        for i in range(len(hiddenlayers)-1):
+        for i in range(len(layers)-1):
             innerlist = []
-            for j in range(hiddenlayers[i + 1]):
+            for j in range(layers[i + 1]):
                 innerinnerlist = []
-                for k in range(hiddenlayers[i]):
+                for k in range(layers[i]):
                     innerinnerlist.append(list[indexList])
                     indexList += 1
                 innerlist.append(innerinnerlist)
