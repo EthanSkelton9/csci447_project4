@@ -63,7 +63,7 @@ def mainEthan():
     NN.listofweights()
     
 if __name__=="__main__":
-    main_Ian(3)
+    main_Ian(2)
     #mainEthan()
 
     
