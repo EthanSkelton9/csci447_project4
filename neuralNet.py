@@ -77,12 +77,6 @@ class Neural_Net:
     def lcompose_fxns(self, f_list):
         return functools.reduce(self.left_compose, f_list)
 
-    def left_compose2(self, f, g):
-        return lambda x: g(*f(*x))
-
-    def lcompose_fxns_2(self, f_list):
-        return functools.reduce(self.left_compose2, f_list)
-
     '''
     @param n: the row dimension
     @param m: the column dimension

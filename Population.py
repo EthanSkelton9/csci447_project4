@@ -20,6 +20,12 @@ class Population:
         chromosome_series = weight_series.map(self.NN.matrix_to_list)
         return self.populationDF(num_hidden, chromosome_series, weight_series)
 
+    '''
+    @param num_hidden: the number of hidden layers
+    @param chromosome_series: a pandas series of chromosomes
+    @param ws: an optional pandas series of weights
+    @return a pandas dataframe of chromosomes with their respective fitness, probability, and bucket range
+    '''
     def populationDF(self, num_hidden, chromosome_series, ws = None):
         weight_series = chromosome_series.map(lambda c: self.NN.list_to_matrix(c, num_hidden)) if ws is None else ws
         fitness_series = weight_series.map(lambda ws: self.fitness()(ws=ws))
@@ -42,6 +48,10 @@ class Population:
 
         return f
 
+    '''
+    @param pop_df: a population dataframe
+    @return: the fittest chromosome in the population
+    '''
     def getBest(self, pop_df):
         pop_fit = pop_df["Fitness"]
         bestfitness = pop_fit.max()
@@ -58,21 +68,40 @@ class Population:
         parent_indices = list(pd.Series([r1, r2]).map(lambda r: l.loc[l.map(lambda l: l > r)].index[0]))
         return tuple(pop_df.loc[parent_indices, "Chromosome"])
 
+    '''
+    @param p1: parent 1
+    @param p2: parent 2
+    '''
     def crossover(self, p1, p2):
         k = random.randint(0, len(p1))
         return (p1[0:k] + p2[k:], p2[0:k] + p1[k:])
-
-    def mutate_gene(self, i):
-        return i + random.uniform(-1, 1)
-
+    '''
+    @param g: gene in a chromosome
+    @return: a mutated gene
+    '''
+    def mutate_gene(self, g):
+        return g + random.uniform(-1, 1)
+    '''
+    @param chr: chromosome in a list
+    @param p_m: the mutation rate
+    @return: a mutated chromosome
+    '''
     def mutation(self, chr, p_m):
         return [self.perchance(p_m, self.mutate_gene)(g) for g in chr]
-
+    '''
+    @param prob: probability of returning output of function
+    @param f: the function
+    @return: a function that sometimes returns the original function's output and sometimes returns the input
+    '''
     def perchance(self, prob, f):
         def g(*args):
             return f(*args) if random.random() < prob else args if len(args) > 1 else args[0]
         return g
-
+    '''
+    @param num_hidden: the number of hidden layers
+    @param p_c: the crossover rate
+    @param p_m: the mutation rate
+    '''
     def generation(self, num_hidden, p_c, p_m):
         def f(pop_df):
             chromosome_list = []
@@ -83,17 +112,33 @@ class Population:
                 chromosome_list += [mc1, mc2]
             return self.populationDF(num_hidden, pd.Series(chromosome_list))
         return f
-
-    def run(self, num_hidden, p_c, p_m, gens, initial_pop = None):
+    '''
+    @param num_hidden: the number of hidden layers
+    @param p_c: the crossover rate
+    @param p_m: the mutation rate
+    @param pop_size: the population size, which is size of population dataframe
+    @param gens: the number of generations
+    @param initial_pop: the initial population to use
+    @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
+    '''
+    def run(self, num_hidden, p_c, p_m, pop_size = 50, gens = 50, initial_pop = None):
         nextGen = self.generation(num_hidden, p_c, p_m)
-        initial_pop = self.createPopulation(num_hidden,50) if initial_pop is None else initial_pop
+        initial_pop = self.createPopulation(num_hidden,pop_size) if initial_pop is None else initial_pop
         fitness_list = []
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
             fitness_list.append(fit)
-            return (pop_df, fitness_list, best_c) if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
+            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
         return recurse(initial_pop, 0, None, 0)
+    '''
+    @param chr: chromosome
+    @param num_hidden: number of hidden layers
+    @param error: whether or not we want the error of prediction
+    @return: predicted series of values if error is false or the prediction error if error is true
+    '''
+    def predict_with_chr(self, chr, num_hidden, error = False):
+        return self.NN.predict_set()(self.NN.list_to_matrix(chr, num_hidden), error = error)
 
 
 

@@ -23,6 +23,7 @@ class DataDictionary:
             data.clean_missing()
             data.one_hot()           #implement one hot encoding
             data.z_score_normalize() #normalize data with z score
+            data.save("w_colnames")
             data.classes = pd.Index(list(set(data.df['Target']))) if data.classification else None
             if not data.classification: data.df['Target'].apply(pd.to_numeric)
         return data

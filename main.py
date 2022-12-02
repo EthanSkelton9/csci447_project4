@@ -37,8 +37,18 @@ def main_Ian(i):
         for data in DD.dataobjects(True):
             P = Population(data)
             population = P.createPopulation(2, 50)
-            (finalpopulation, fitness) = P.run(2, 0.95, 0.01, 50, population)
+            (finalpopulation, fitness) = P.run(2, 0.95, 0.01, 50, 50, population)
             pd.Series(fitness).to_csv("Fitness_{}.csv".format(str(data)))
+    if i == 3:
+        DD = DataDictionary()
+        data = DD.dataobject(True, "SoyBean")
+        P = Population(data)
+        (fitness, chr) = P.run(num_hidden=2, p_c=0.95, p_m=0.01, pop_size=50, gens=50)
+        print(P.predict_with_chr(chr, 2))
+
+
+
+
 
 
 def mainEthan(): 
@@ -48,7 +58,7 @@ def mainEthan():
     NN.listofweights()
     
 if __name__=="__main__":
-    main_Ian(2)
+    main_Ian(3)
     #mainEthan()
 
 
