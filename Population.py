@@ -42,6 +42,12 @@ class Population:
 
         return f
 
+    def getBest(self, pop_df):
+        pop_fit = pop_df["Fitness"]
+        bestfitness = pop_fit.max()
+        bestindex = pop_fit.loc[lambda f: f == bestfitness].index[0]
+        return tuple(pop_df.loc[bestindex, ["Chromosome", "Fitness"]])
+
     '''
     @param pop_df: the dataframe that represents a population
     @return: a tuple of indices used for the chosen parents
@@ -52,18 +58,44 @@ class Population:
         parent_indices = list(pd.Series([r1, r2]).map(lambda r: l.loc[l.map(lambda l: l > r)].index[0]))
         return tuple(pop_df.loc[parent_indices, "Chromosome"])
 
+    def crossover(self, p1, p2):
+        k = random.randint(0, len(p1))
+        return (p1[0:k] + p2[k:], p2[0:k] + p1[k:])
+
+    def mutate_gene(self, i):
+        return i + random.uniform(-1, 1)
+
+    def mutation(self, chr, p_m):
+        return [self.perchance(p_m, self.mutate_gene)(g) for g in chr]
+
     def perchance(self, prob, f):
         def g(*args):
-            return f(*args) if random.random() < prob else args
+            return f(*args) if random.random() < prob else args if len(args) > 1 else args[0]
         return g
 
-    def generation(self, num_hidden, pop_df, p_c):
-        chromosome_list = []
-        for i in range(pop_df.shape[0] // 2):
-            (p1, p2) = self.selection(pop_df)
-            (c1, c2) = self.perchance(p_c, self.NN.crossover)(p1, p2)
-            chromosome_list += [c1, c2]
-        return self.populationDF(num_hidden, pd.Series(chromosome_list))
+    def generation(self, num_hidden, p_c, p_m):
+        def f(pop_df):
+            chromosome_list = []
+            for i in range(pop_df.shape[0] // 2):
+                (p1, p2) = self.selection(pop_df)
+                (c1, c2) = self.perchance(p_c, self.crossover)(p1, p2)
+                (mc1, mc2) = tuple(pd.Series([c1, c2]).map(lambda c: self.mutation(c, p_m)))
+                chromosome_list += [mc1, mc2]
+            return self.populationDF(num_hidden, pd.Series(chromosome_list))
+        return f
+
+    def run(self, num_hidden, p_c, p_m, gens, initial_pop = None):
+        nextGen = self.generation(num_hidden, p_c, p_m)
+        initial_pop = self.createPopulation(num_hidden,50) if initial_pop is None else initial_pop
+        fitness_list = []
+        def recurse(pop_df, i, curr_best_chr, curr_best_fit):
+            (chr, fit) = self.getBest(pop_df)
+            (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
+            fitness_list.append(fit)
+            return (pop_df, fitness_list, best_c) if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
+        return recurse(initial_pop, 0, None, 0)
+
+
 
 
 

@@ -10,8 +10,6 @@ from Population import Population
 
 def main_Ian(i):
     if i == 1:
-        pass
-    if i == 2:
         DD = DataDictionary()
         data = DD.dataobject(True, "Abalone")
         NN = Neural_Net(data)
@@ -30,17 +28,17 @@ def main_Ian(i):
         chr = NN.matrix_to_list(ws)
         print("Chromosome? {}".format(chr))
         print("Number of Genes in Chromosome: {}".format(len(chr)))
+        print("Mutate: {}".format(NN.mutation(chr)))
         print("Back to Weights")
         print(NN.list_to_matrix(chr, 0))
         #NN.listofweights()
-    if i == 3:
+    if i == 2:
         DD = DataDictionary()
-        data = DD.dataobject(True, "Abalone")
-        P = Population(data)
-        population = P.createPopulation(2, 50)
-        population.to_csv("InitialPopulation.csv")
-        newpopulation = P.generation(2, population, 0.8)
-        newpopulation.to_csv("AfterOneGeneration.csv")
+        for data in DD.dataobjects(True):
+            P = Population(data)
+            population = P.createPopulation(2, 50)
+            (finalpopulation, fitness) = P.run(2, 0.95, 0.01, 50, population)
+            pd.Series(fitness).to_csv("Fitness_{}.csv".format(str(data)))
 
 
 def mainEthan(): 
@@ -50,7 +48,7 @@ def mainEthan():
     NN.listofweights()
     
 if __name__=="__main__":
-    main_Ian(3)
+    main_Ian(2)
     #mainEthan()
 
 
