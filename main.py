@@ -53,13 +53,14 @@ def main_Ian(i):
 
 def mainEthan(): 
     DD = DataDictionary()
-    data = DD.dataobject(True, "ForestFires")
-    NN  = Neural_Net(data)  
-    NN.listofweights()
+    data = DD.dataobject(True, "SoyBean")
+    P = Population(data)
+    (fitness, chr) = P.runPSO(num_hidden=2, p_c=0.95, p_m=0.01, pop_size=50, gens=50)
+    print(P.predict_with_chr(chr, 2))
     
 if __name__=="__main__":
-    main_Ian(3)
-    #mainEthan()
+    #main_Ian(3)
+    mainEthan()
 
 
     
