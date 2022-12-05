@@ -121,15 +121,13 @@ class Population:
     @param initial_pop: the initial population to use
     @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
     '''
-    def run(self, num_hidden, p_c, p_m, pop_size = 50, gens = 50, initial_pop = None):
+    def run(self, num_hidden, p_c, p_m, pop_size, gens = 50, initial_pop = None):
         nextGen = self.generation(num_hidden, p_c, p_m)
         initial_pop = self.createPopulation(num_hidden,pop_size) if initial_pop is None else initial_pop
-        fitness_list = []
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
-            fitness_list.append(fit)
-            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
+            return best_c if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
         return recurse(initial_pop, 0, None, 0)
     '''
     @param chr: chromosome
@@ -139,8 +137,6 @@ class Population:
     '''
     def predict_with_chr(self, chr, num_hidden, error = False):
         return self.NN.predict_set()(self.NN.list_to_matrix(chr, num_hidden), error = error)
-
-
 
 
     '''
