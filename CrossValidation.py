@@ -61,28 +61,29 @@ class CrossValidation:
         return (train_dict, test_dict)
 
 
-    def error_from_df(self, model, dataset, hyp_df):
-        error_func = self.error_from_series(model, dataset)
+    def error_from_df(self, model, num_hidden, dataset, hyp_df):
+        error_func = self.error_from_series(model, num_hidden, dataset)
         def f(i):
             hyps = hyp_df.loc[i, :]
             return error_func(hyps)
         return f
 
-    def error_from_series(self, model, dataset):
-        if model == 'GA': f = self.error_GA(dataset)
+    def error_from_series(self, model, num_hidden, dataset):
+        if model == 'GA': f = self.error_GA(num_hidden, dataset)
         '''
         if model == 'DE': f = self.error_DE(dataset)
         if model == 'PSO': f = self.error_PSO(dataset)
         '''
         return f
 
-    def error_GA(self, dataset):
+    def error_GA(self, num_hidden, dataset):
         def f(hyps):
-            chr = self.Pop.run(num_hidden=hyps["num_hidden"], p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
-            return self.Pop.predict_with_chr(dataset, chr, hyps["num_hidden"], error=True)
+            chr = self.Pop.run(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
+            print("Chr: {}".format(chr))
+            return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
         return f
 
-    def tuneHyps(self, model, train_dict, fold, hyp_list, start_hyp_dict):
+    def tuneHyps(self, model, num_hidden, train_dict, fold, hyp_list, start_hyp_dict):
         def tuneHyp(hyp_dict, fix, find):
             hyp_spaces = tuple([[random.choice(hyp_dict[hyp])] if hyp in fix else hyp_dict[hyp] for hyp in hyp_list])
             my_space = pd.Series(prod(*hyp_spaces))
@@ -93,13 +94,14 @@ class CrossValidation:
             error_df = pd.DataFrame(index=range(len(my_space)))
             for (title, col) in data:
                 error_df[title] = col
-            error = self.error_from_df(model = model, dataset = train_dict[fold], hyp_df = error_df)
+            error = self.error_from_df(model, num_hidden, train_dict[fold], error_df)
             error_column = pd.Series(range(df_size)).map(error).values
             min_error = error_column.min()
             error_df["Error"] = error_column
             error_df.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
                             "{}_Tune_{}_Fix_{}_Fold_{}.csv".format(str(self.data), find, fix, fold))
             best_row = error_df.loc[lambda df: df["Error"] == min_error].iloc[0]
+            print("The best value for {} is {}".format(find, best_row[find]))
             return best_row[find]
 
         def linearSearch(hyp_dict, toSearch):
@@ -109,8 +111,12 @@ class CrossValidation:
                 hyp_dict[hypToFind] = [bestValue]
             return pd.Series(hyp_list, index=hyp_list).map(lambda hyp: hyp_dict[hyp][0])
 
-        return linearSearch(start_hyp_dict, set(hyp_list))
+        return linearSearch(copy(start_hyp_dict), set(hyp_list))
 
+    def test(self, start_hyp_dict):
+        p = self.stratified_partition(10)
+        (train_dict, test_dict) = self.training_test_dicts(self.data.df, p)
+        self.tuneHyps("GA", 0, train_dict, 0, ['p_c', 'p_m', 'pop_size'], start_hyp_dict)
 
 
 

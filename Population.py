@@ -12,13 +12,13 @@ class Population:
     @param hidden_layers_num
     @return: a pandas data frame that has randomly generated weights with fitness, probability, and location
     '''
-    def createPopulation(self, num_hidden, size = 50):
+    def createPopulation(self, num_hidden, dataset, size = 50):
         target_length = len(self.data.classes) if self.data.classes is not None else 1
         nrows = self.data.df.shape[1] - 1
         hidden_vector = self.data.hidden_vectors[num_hidden - 1] if num_hidden > 0 else []
-        weight_series = pd.Series(size * [0]).map(lambda i: self.NN.list_weights(nrows, hidden_vector, target_length))
+        weight_series = pd.Series(int(size) * [0]).map(lambda i: self.NN.list_weights(nrows, hidden_vector, target_length))
         chromosome_series = weight_series.map(self.NN.matrix_to_list)
-        return self.populationDF(num_hidden, chromosome_series, weight_series)
+        return self.populationDF(num_hidden, chromosome_series, dataset, weight_series)
 
     '''
     @param num_hidden: the number of hidden layers
@@ -26,9 +26,9 @@ class Population:
     @param ws: an optional pandas series of weights
     @return a pandas dataframe of chromosomes with their respective fitness, probability, and bucket range
     '''
-    def populationDF(self, num_hidden, chromosome_series, ws = None):
+    def populationDF(self, num_hidden, chromosome_series, dataset, ws = None):
         weight_series = chromosome_series.map(lambda c: self.NN.list_to_matrix(c, num_hidden)) if ws is None else ws
-        fitness_series = weight_series.map(lambda ws: self.fitness()(ws=ws))
+        fitness_series = weight_series.map(lambda ws: self.fitness(df = dataset)(ws=ws))
         prob_list = self.NN.prob_distribution(fitness_series.to_numpy().reshape(-1, 1)).flatten()
         loc_list = prob_list.cumsum()
         df = pd.DataFrame({"Chromosome": chromosome_series, "Fitness": fitness_series,
@@ -102,7 +102,7 @@ class Population:
     @param p_c: the crossover rate
     @param p_m: the mutation rate
     '''
-    def generation(self, num_hidden, p_c, p_m):
+    def generation(self, num_hidden, dataset, p_c, p_m):
         def f(pop_df):
             chromosome_list = []
             for i in range(pop_df.shape[0] // 2):
@@ -110,7 +110,7 @@ class Population:
                 (c1, c2) = self.perchance(p_c, self.crossover)(p1, p2)
                 (mc1, mc2) = tuple(pd.Series([c1, c2]).map(lambda c: self.mutation(c, p_m)))
                 chromosome_list += [mc1, mc2]
-            return self.populationDF(num_hidden, pd.Series(chromosome_list))
+            return self.populationDF(num_hidden, pd.Series(chromosome_list), dataset=dataset)
         return f
     '''
     @param num_hidden: the number of hidden layers
@@ -121,9 +121,9 @@ class Population:
     @param initial_pop: the initial population to use
     @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
     '''
-    def run(self, num_hidden, p_c, p_m, pop_size, gens = 50, initial_pop = None):
-        nextGen = self.generation(num_hidden, p_c, p_m)
-        initial_pop = self.createPopulation(num_hidden,pop_size) if initial_pop is None else initial_pop
+    def run(self, num_hidden, dataset, p_c, p_m, pop_size, gens = 50, initial_pop = None):
+        nextGen = self.generation(num_hidden, dataset, p_c, p_m)
+        initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)

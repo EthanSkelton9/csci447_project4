@@ -96,10 +96,10 @@ class Neural_Net:
     @param: an ordered index of the classes
     @return: a function that takes an index of the data and returns a vector with a one in its corresponding class
     '''
-    def targetdf(self):
-        targets = self.data.df.loc[:, "Target"]
+    def targetdf(self, dataset):
+        targets = dataset["Target"]
         def f_classification():
-            mdf = pd.DataFrame(np.zeros((self.data.df.shape[0], len(self.data.classes))))
+            mdf = pd.DataFrame(index = dataset.index, columns = self.data.classes)
             for i in mdf.index:
                 mdf.loc[i, :] = self.data.classes.map(lambda cl: int(cl == targets[i])) #Give this example a row with a one in the corresponding class
             return mdf  #Return onehot encoded dataframe
@@ -109,21 +109,23 @@ class Neural_Net:
     @param pred_vec: a numpy vector of predicted values
     @return: mean squared error
     '''
-    def mse_np(self, pred_vec):
-        actual_vec = np.array(self.targetdf())
+    def mse_np(self, dataset, pred_vec):
+        actual_vec = np.array(self.targetdf(dataset))
         return math.pow(np.linalg.norm(pred_vec - actual_vec), 2) / len(pred_vec)
     '''
     @param pred_df: a matrix showing predicted probabilities for respective classes
     @return: cross entropy error
     '''
-    def ce_np(self, pred_matrix):
-        return - np.sum(np.sum(self.targetdf() * np.vectorize(np.log)(np.transpose(pred_matrix))))
+    def ce_np(self, dataset, pred_matrix):
+        return - np.sum(np.sum(self.targetdf(dataset) * np.vectorize(np.log)(np.transpose(pred_matrix))))
     '''
     @param pred: numpy array of predictions
     @return: the appropriate error
     '''
-    def error_np(self, pred):
-        return self.ce_np(pred) if self.data.classification else self.mse_np(pred)
+    def error_np(self, dataset):
+        def f(pred):
+            return self.ce_np(dataset, pred) if self.data.classification else self.mse_np(dataset, pred)
+        return f
 
     '''
     @param predicted: a series of predicted values
@@ -173,13 +175,13 @@ class Neural_Net:
     @param weights: a list of matrices
     @return: a function that takes a vector of features through the network
     '''
-    def network_transformation(self, weights, error = False):
+    def network_transformation(self, dataset, weights, error = False):
         sigmoid_compose = lambda f, g: self.lcompose_fxns([f, self.sigmoid_v, g])
         lin_trans = pd.Series(weights).map(self.linear_transformation)
         nt = functools.reduce(sigmoid_compose, lin_trans)
         (exp, probdist, ser, pred) = (np.vectorize(np.exp), self.prob_distribution, self.to_series, self.predict_classes)
         (beg, end) = ([nt, exp, probdist], [ser, pred]) if self.data.classification else ([nt], [ser])
-        f_list = beg + [self.error_np] if error else beg + end
+        f_list = beg + [self.error_np(dataset)] if error else beg + end
         return self.lcompose_fxns(f_list)
 
     '''
@@ -195,7 +197,7 @@ class Neural_Net:
         nrows = self.data.df.shape[1] - 1
         def f(ws = None, hidden_vector = None, error = False):
             if ws is None: ws = pd.Series(self.list_weights(nrows, hidden_vector, target_length))
-            return self.network_transformation(ws, error)(data_matrix)
+            return self.network_transformation(df, ws, error)(data_matrix)
         return f
 
 
