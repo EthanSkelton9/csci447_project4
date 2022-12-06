@@ -135,8 +135,8 @@ class Population:
     @param error: whether or not we want the error of prediction
     @return: predicted series of values if error is false or the prediction error if error is true
     '''
-    def predict_with_chr(self, chr, num_hidden, error = False):
-        return self.NN.predict_set()(self.NN.list_to_matrix(chr, num_hidden), error = error)
+    def predict_with_chr(self, dataset, chr, num_hidden, error = False):
+        return self.NN.predict_set(df = dataset)(self.NN.list_to_matrix(chr, num_hidden), error = error)
 
 
     '''
