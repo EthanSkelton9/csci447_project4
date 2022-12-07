@@ -135,7 +135,7 @@ class CrossValidation:
             min_error = error_column.min()
             error_df["Error"] = error_column
             best_row = error_df.loc[lambda df: df["Error"] == min_error].iloc[0]  #find the row with the lowest error
-            print("The best value for {} is {}".format(find, best_row[find]))
+            print("The best value for {} is {}.".format(find, best_row[find]))
             return (best_row[find], error_df)
         '''
         @param hyp_dict: the dictionary of hyperparameters and the values to tune over
@@ -150,7 +150,8 @@ class CrossValidation:
                 hyp_dict[hypToFind] = [bestValue]
                 error_dfs.append(error_df)
             results_df = pd.concat(error_dfs).reset_index(drop=True)
-            results_df.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' + "{}_Error_Fold_{}.csv".format(str(self.data), fold))
+            results_df.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
+                              "{}_{}_HiddenLayers_Error_Fold_{}.csv".format(str(self.data), num_hidden, fold))
             return pd.Series(hyp_list, index=hyp_list).map(lambda hyp: hyp_dict[hyp][0])
 
         return linearSearch(copy(start_hyp_dict), set(hyp_list))
@@ -165,7 +166,8 @@ class CrossValidation:
             analysisDF.loc[fold, :] = pd.Series(hyp_dict)
             error_column.append(self.error_from_df(model, num_hidden, test_dict[fold], analysisDF)(fold))
         analysisDF["Error"] = error_column
-        analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' + "{}_Analysis.csv".format(str(self.data)))
+        analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
+                          "{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), num_hidden))
 
 
     def test(self, start_hyp_dict):
