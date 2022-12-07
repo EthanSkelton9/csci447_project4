@@ -144,7 +144,7 @@ class Population:
     @param p_c: the crossover rate
     @param p_m: the mutation rate
     '''
-    def generationDE(self, num_hidden, p_c, p_m):
+    def generationDE(self, num_hidden, dataset, p_c, p_m):
         def f(pop_df):
             chromosome_list = []
             for i in range(pop_df.shape[0] // 2):
@@ -153,7 +153,7 @@ class Population:
                 (mc1, mc2) = tuple(pd.Series([p1, p2]).map(lambda c: self.mutation(c, p_m)))
                 (c1, c2) = self.perchance(p_c, self.crossover)(mc1, mc2)
                 chromosome_list += [c1, c2]
-            return self.populationDF(num_hidden, pd.Series(chromosome_list))
+            return self.populationDF(num_hidden, pd.Series(chromosome_list), dataset=dataset)
         return f
     '''
     @param num_hidden: the number of hidden layers
@@ -164,9 +164,9 @@ class Population:
     @param initial_pop: the initial population to use
     @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
     '''
-    def runDE(self, num_hidden, p_c, p_m, pop_size = 50, gens = 50, initial_pop = None):
-        nextGen = self.generationDE(num_hidden, p_c, p_m)
-        initial_pop = self.createPopulation(num_hidden,pop_size) if initial_pop is None else initial_pop
+    def runDE(self, num_hidden, dataset, p_c, p_m, pop_size = 50, gens = 50, initial_pop = None):
+        nextGen = self.generationDE(num_hidden, dataset, p_c, p_m)
+        initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         fitness_list = []
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
             (chr, fit) = self.getBest(pop_df)
@@ -180,11 +180,13 @@ class Population:
     @param p_c: the crossover rate
     @param p_m: the mutation rate
     '''
-    def generationPSO(self, num_hidden, p_c, p_m):
-        def f(pop_df, v, pbest, gbest, c, r):
-            nv = v.add(c*r*((-pop_df).add(pbest)) + c*r*((-pop_df).add(gbest)))
-            pop_df.add(nv)
-            return (nv, self.populationDF(num_hidden, pop_df))
+    def generationPSO(self, num_hidden, dataset, p_c, p_m, c1, r1, c2, r2):
+        def f(pop_df, v, pbest, gbest):
+            for i in range(pop_df.shape[0]):
+                chrome_at_i = pop_df["Chromosome"][i]
+                v[i].add(c1*r1*((-chrome_at_i).add(pbest)) + c2*r2*((-chrome_at_i).add(gbest)))
+                pop_df["Chromosome"].add(v[i])
+            return (v, self.populationDF(num_hidden, pop_df, dataset))
         return f
     '''
     @param num_hidden: the number of hidden layers
@@ -195,11 +197,11 @@ class Population:
     @param initial_pop: the initial population to use
     @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
     '''
-    def runPSO(self, num_hidden, p_c, p_m, pop_size = 50, gens = 50, initial_pop = None):
-        nextGen = self.generationPSO(num_hidden, p_c, p_m)
-        initial_pop = self.createPopulation(num_hidden,pop_size) if initial_pop is None else initial_pop
+    def runPSO(self, num_hidden, dataset, p_c, p_m , c1, r1, c2, r2, pop_size = 50, gens = 50, initial_pop = None):
+        nextGen = self.generationPSO(num_hidden, dataset, p_c, p_m, c1, r1, c2, r2)
+        initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         fitness_list = []
-        velocity = pd.DataFrame()
+        velocity = pd.DataFrame(index = range(initial_pop.shape[0]), columns=(range(initial_pop["Chomosome"].shape[1])))
         def recurse(pop_df, velocity, i, curr_best_chr, curr_best_fit):
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
