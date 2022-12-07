@@ -147,6 +147,19 @@ class CrossValidation:
 
         return linearSearch(copy(start_hyp_dict), set(hyp_list))
 
+    def analysis(self, model, num_hidden, hyp_list, start_hyp_dict):
+        p = self.stratified_partition(10)
+        (train_dict, test_dict) = self.training_test_dicts(self.data.df, p)
+        analysisDF = pd.DataFrame(index = range(10), columns=hyp_list)
+        error_column = []
+        for fold in analysisDF.index:
+            hyp_dict = self.tuneHyps(model, num_hidden, train_dict, fold, hyp_list, start_hyp_dict)
+            analysisDF.loc[fold, :] = pd.Series(hyp_dict)
+            error_column.append(self.error_from_df(model, num_hidden, test_dict[fold], analysisDF)(fold))
+        analysisDF["Error"] = error_column
+        analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' + "{}_Analysis.csv".format(str(self.data)))
+
+
     def test(self, start_hyp_dict):
         p = self.stratified_partition(10)
         (train_dict, test_dict) = self.training_test_dicts(self.data.df, p)

@@ -18,11 +18,10 @@ def main_Ian(i):
         CV.test(start_hyp_dict)
     if i == 2:
         DD = DataDictionary()
-        for data in DD.dataobjects(True):
-            P = Population(data)
-            population = P.createPopulation(2, 50)
-            (finalpopulation, fitness) = P.run(2, 0.95, 0.01, 50, 50, population)
-            pd.Series(fitness).to_csv("Fitness_{}.csv".format(str(data)))
+        data = DD.dataobject(True, "SoyBean")
+        CV = CrossValidation(data)
+        start_hyp_dict = {'p_c': [0.8, 0.85, 0.9], 'p_m': [0.01, 0.02, 0.03], 'pop_size': [30, 40, 50]}
+        CV.analysis("GA",0,['p_c', 'p_m', 'pop_size'], start_hyp_dict)
     if i == 3:
         DD = DataDictionary()
         data = DD.dataobject(True, "SoyBean")
@@ -43,7 +42,7 @@ def mainEthan():
     print(P.predict_with_chr(chr, 2))
     
 if __name__=="__main__":
-    main_Ian(1)
+    main_Ian(2)
     #mainEthan()
 
 
