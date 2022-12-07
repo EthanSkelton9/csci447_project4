@@ -14,7 +14,7 @@ def main_Ian(i):
         DD = DataDictionary()
         data = DD.dataobject(True, "SoyBean")
         CV = CrossValidation(data)
-        start_hyp_dict = {'p_c':[0.8, 0.85, 0.9], 'p_m':[0.01, 0.02, 0.03], 'pop_size':[30, 40, 50]}
+        start_hyp_dict = {'p_c':[0.8, 0.9], 'p_m':[0.01, 0.03], 'pop_size':[30, 50]}
         CV.test(start_hyp_dict)
     if i == 2:
         DD = DataDictionary()
@@ -42,7 +42,7 @@ def mainEthan():
     # print(P.predict_with_chr(chr, 2))
     
 if __name__=="__main__":
-    main_Ian(2)
+    main_Ian(1)
     #mainEthan()
 
 
