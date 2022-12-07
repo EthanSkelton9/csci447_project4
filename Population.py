@@ -121,7 +121,7 @@ class Population:
     @param initial_pop: the initial population to use
     @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
     '''
-    def run(self, num_hidden, dataset, p_c, p_m, pop_size, gens = 50, initial_pop = None):
+    def run(self, num_hidden, dataset, p_c, p_m, pop_size, gens = 30, initial_pop = None):
         nextGen = self.generation(num_hidden, dataset, p_c, p_m)
         initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
