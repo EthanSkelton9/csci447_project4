@@ -81,8 +81,8 @@ class CrossValidation:
     '''
     def error_from_series(self, model, num_hidden, dataset):
         if model == 'GA': f = self.error_GA(num_hidden, dataset)
+        if model == 'DE': f = self.error_DE(num_hidden, dataset)
         '''
-        if model == 'DE': f = self.error_DE(dataset)
         if model == 'PSO': f = self.error_PSO(dataset)
         '''
         return f
@@ -95,6 +95,12 @@ class CrossValidation:
         def f(hyps):
             chr = self.Pop.run(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
             print("Chr: {}".format(chr))
+            return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
+        return f
+
+    def error_DE(self, num_hidden, dataset):
+        def f(hyps):
+            chr = self.Pop.runDE(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
             return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
         return f
 
@@ -128,21 +134,24 @@ class CrossValidation:
             error_column = pd.Series(range(df_size)).map(error).values     #evaluate errors for hyperparameter df
             min_error = error_column.min()
             error_df["Error"] = error_column
-            error_df.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
-                            "{}_Tune_{}_Fix_{}_Fold_{}.csv".format(str(self.data), find, fix, fold))
             best_row = error_df.loc[lambda df: df["Error"] == min_error].iloc[0]  #find the row with the lowest error
-            print("The best value for {} is {}".format(find, best_row[find]))
-            return best_row[find]
+            print("The best value for {} is {}.".format(find, best_row[find]))
+            return (best_row[find], error_df)
         '''
         @param hyp_dict: the dictionary of hyperparameters and the values to tune over
         @param: the set of hyperparameters that still need to be tuned for
         @return: a dictionary that inputs a hyperparameter and returns the best value for that hyperparameter
         '''
         def linearSearch(hyp_dict, toSearch):
+            error_dfs = []
             while len(toSearch) > 0:
                 hypToFind = toSearch.pop()
-                bestValue = tuneHyp(hyp_dict, toSearch, hypToFind)
+                (bestValue, error_df) = tuneHyp(hyp_dict, toSearch, hypToFind)
                 hyp_dict[hypToFind] = [bestValue]
+                error_dfs.append(error_df)
+            results_df = pd.concat(error_dfs).reset_index(drop=True)
+            results_df.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
+                              "{}_{}_HiddenLayers_Error_Fold_{}.csv".format(str(self.data), num_hidden, fold))
             return pd.Series(hyp_list, index=hyp_list).map(lambda hyp: hyp_dict[hyp][0])
 
         return linearSearch(copy(start_hyp_dict), set(hyp_list))
@@ -157,7 +166,8 @@ class CrossValidation:
             analysisDF.loc[fold, :] = pd.Series(hyp_dict)
             error_column.append(self.error_from_df(model, num_hidden, test_dict[fold], analysisDF)(fold))
         analysisDF["Error"] = error_column
-        analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' + "{}_Analysis.csv".format(str(self.data)))
+        analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
+                          "{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), num_hidden))
 
 
     def test(self, start_hyp_dict):
