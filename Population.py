@@ -146,7 +146,7 @@ class Population:
         nextGen = self.generation(num_hidden, dataset, p_c, p_m)
         initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
-            print("Current Best Chr: {}".format(curr_best_chr))
+            print("~~~~~~~~~~~~~~~~~~~~~")
             print("Current Best Fitness: {}".format(curr_best_fit))
             print("Generation: {}".format(i))
             #gen_time = time.time()
