@@ -174,7 +174,7 @@ class Population:
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
             fitness_list.append(fit)
-            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
+            return best_c if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
         return recurse(initial_pop, 0, None, 0)
   
     '''
