@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import functools
 import random
+import time
 from operator import add
 
 class Population:
@@ -29,10 +30,19 @@ class Population:
     @return a pandas dataframe of chromosomes with their respective fitness, probability, and bucket range
     '''
     def populationDF(self, num_hidden, chromosome_series, dataset, ws = None):
+        #print("Get Weights")
+        #weight_time = time.time()
         weight_series = chromosome_series.map(lambda c: self.NN.list_to_matrix(c, num_hidden)) if ws is None else ws
+        #print("Weight Time: {} Seconds".format(time.time() - weight_time))
+        #print("Get Fitness")
+        fitness_time = time.time()
         fitness_series = weight_series.map(lambda ws: self.fitness(df = dataset)(ws=ws))
+        #print("Fitness Time: {} Seconds".format(time.time() - fitness_time))
+        #print("Probabilities and Location")
+        #prob_loc_time = time.time()
         prob_list = self.NN.prob_distribution(fitness_series.to_numpy().reshape(-1, 1)).flatten()
         loc_list = prob_list.cumsum()
+        #print("Probability and Location Time: {}".format(time.time() - prob_loc_time))
         df = pd.DataFrame({"Chromosome": chromosome_series, "Fitness": fitness_series,
                            "Probability": prob_list, "Location": loc_list})
         return df
@@ -108,9 +118,18 @@ class Population:
         def f(pop_df):
             chromosome_list = []
             for i in range(pop_df.shape[0] // 2):
+                #print("Select")
+                #select_time = time.time()
                 (p1, p2) = self.selection(pop_df)
+                #print("Selection Time: {}".format(time.time() - select_time))
+                #print("Crossover")
+                crossover_time = time.time()
                 (c1, c2) = self.perchance(p_c, self.crossover)(p1, p2)
+                #print("Crossover Time: {}".format(time.time() - crossover_time))
+                #print("Mutate")
+                #mutate_time = time.time()
                 (mc1, mc2) = tuple(pd.Series([c1, c2]).map(lambda c: self.mutation(c, p_m)))
+                #print("Mutation Time: {}".format(time.time() - mutate_time))
                 chromosome_list += [mc1, mc2]
             return self.populationDF(num_hidden, pd.Series(chromosome_list), dataset=dataset)
         return f
@@ -127,10 +146,19 @@ class Population:
         nextGen = self.generation(num_hidden, dataset, p_c, p_m)
         initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
+            print("Current Best Chr: {}".format(curr_best_chr))
+            print("Current Best Fitness: {}".format(curr_best_fit))
+            print("Generation: {}".format(i))
+            #gen_time = time.time()
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
-            return best_c if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
-        return recurse(initial_pop, 0, None, 0)
+            if i == gens:
+                return best_c
+            else:
+                new_pop_df = nextGen(pop_df)
+                #print("Generation Time: {} Seconds".format(time.time() - gen_time))
+                return recurse(new_pop_df, i + 1, best_c, best_f)
+        return recurse(initial_pop, 0, None, -100)
     '''
     @param chr: chromosome
     @param num_hidden: number of hidden layers
@@ -174,7 +202,7 @@ class Population:
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
             fitness_list.append(fit)
-            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
+            return best_c if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
         return recurse(initial_pop, 0, None, 0)
   
     '''
