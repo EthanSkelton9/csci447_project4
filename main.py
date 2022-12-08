@@ -18,12 +18,12 @@ def main_Ian(i):
         CV.test(start_hyp_dict)
     if i == 2:
         DD = DataDictionary()
-        data = DD.dataobject(True, "BreastCancer")
+        data = DD.dataobject(True, "SoyBean")
         CV = CrossValidation(data)
         start_hyp_dict = {'p_c': [0.75, 0.8, 0.85, 0.9, 0.95],
                           'p_m': [0.01, 0.02, 0.03, 0.04, 0.05],
                           'pop_size': [10, 20, 30, 40, 50]}
-        CV.analysis("GA",1,['p_c', 'p_m', 'pop_size'], start_hyp_dict)
+        CV.analysis("DE",2,['p_c', 'p_m', 'pop_size'], start_hyp_dict)
     if i == 3:
         DD = DataDictionary()
         data = DD.dataobject(True, "SoyBean")
