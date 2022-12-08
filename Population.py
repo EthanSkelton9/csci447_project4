@@ -182,7 +182,7 @@ class Population:
     @param p_c: the crossover rate
     @param p_m: the mutation rate
     '''
-    def generationPSO(self, num_hidden, dataset, p_c, p_m, c1, c2, v):
+    def generationPSO(self, num_hidden, dataset, w, c, v):
         def f(pop_df, pbest, gbest):
             lpbest = np.array(pbest)
             lgbest = np.array(gbest)
@@ -191,7 +191,7 @@ class Population:
                 chrome_at_i = pop_df["Chromosome"][i]
                 neg_chrome_at_i = [ -x for x in chrome_at_i]
                 #v[i].add(c1*r1*((neg_chrome_at_i).add(pbest)) + c2*r2*((neg_chrome_at_i).add(gbest)))
-                v[i] = v[i] + c1*r*(np.array(neg_chrome_at_i) + lpbest) + c2*r*(np.array(neg_chrome_at_i) + lgbest)
+                v[i] = v[i] + c*r*(np.array(neg_chrome_at_i) + lpbest) + c*r*(np.array(neg_chrome_at_i) + lgbest)
                 chrome_at_i += v[i]
             return self.populationDF(num_hidden,  pd.Series(pop_df["Chromosome"]), dataset)
         return f
@@ -204,19 +204,18 @@ class Population:
     @param initial_pop: the initial population to use
     @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
     '''
-    def runPSO(self, num_hidden, dataset, p_c, p_m , c1, c2, pop_size = 50, gens = 50, initial_pop = None):
-        velocity = pd.DataFrame(1, index = range(40), columns=range(50))
-        nextGen = self.generationPSO(num_hidden, dataset, p_c, p_m, c1, c2, velocity)
+    def runPSO(self, num_hidden, dataset, w, c, pop_size = 50, gens = 50, initial_pop = None):
+        # velocity = pd.DataFrame(1, index = range(40), columns=range(50))
         initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         velocity = pd.DataFrame(1, index = range(len(initial_pop["Chromosome"][0])), columns=range(initial_pop.shape[0]))
+        nextGen = self.generationPSO(num_hidden, dataset, w, c, velocity)
         fitness_list = []
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
             fitness_list.append(fit)
             
-            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df, chr, best_c), i + 1, best_c, best_f) 
-                # 
+            return best_c if i == gens else recurse(nextGen(pop_df, chr, best_c), i + 1, best_c, best_f)  
         return recurse(initial_pop, 0, None, 0)
 
 
