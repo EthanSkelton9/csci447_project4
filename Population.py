@@ -4,6 +4,8 @@ import numpy as np
 import functools
 import random
 import time
+from operator import add
+
 class Population:
     def __init__(self, data):
         self.data = data
@@ -200,7 +202,7 @@ class Population:
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
             fitness_list.append(fit)
-            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
+            return best_c if i == gens else recurse(nextGen(pop_df), i + 1, best_c, best_f)
         return recurse(initial_pop, 0, None, 0)
   
     '''
@@ -208,13 +210,18 @@ class Population:
     @param p_c: the crossover rate
     @param p_m: the mutation rate
     '''
-    def generationPSO(self, num_hidden, dataset, p_c, p_m, c1, r1, c2, r2):
-        def f(pop_df, v, pbest, gbest):
+    def generationPSO(self, num_hidden, dataset, p_c, p_m, c1, c2, v):
+        def f(pop_df, pbest, gbest):
+            lpbest = np.array(pbest)
+            lgbest = np.array(gbest)
             for i in range(pop_df.shape[0]):
+                r=random.uniform(0, 1)
                 chrome_at_i = pop_df["Chromosome"][i]
-                v[i].add(c1*r1*((-chrome_at_i).add(pbest)) + c2*r2*((-chrome_at_i).add(gbest)))
-                pop_df["Chromosome"].add(v[i])
-            return (v, self.populationDF(num_hidden, pop_df, dataset))
+                neg_chrome_at_i = [ -x for x in chrome_at_i]
+                #v[i].add(c1*r1*((neg_chrome_at_i).add(pbest)) + c2*r2*((neg_chrome_at_i).add(gbest)))
+                v[i] = v[i] + c1*r*(np.array(neg_chrome_at_i) + lpbest) + c2*r*(np.array(neg_chrome_at_i) + lgbest)
+                chrome_at_i += v[i]
+            return self.populationDF(num_hidden,  pd.Series(pop_df["Chromosome"]), dataset)
         return f
     '''
     @param num_hidden: the number of hidden layers
@@ -225,17 +232,20 @@ class Population:
     @param initial_pop: the initial population to use
     @return: (a pandas series of best fitness per generation, overall best chromosome for all generations)
     '''
-    def runPSO(self, num_hidden, dataset, p_c, p_m , c1, r1, c2, r2, pop_size = 50, gens = 50, initial_pop = None):
-        nextGen = self.generationPSO(num_hidden, dataset, p_c, p_m, c1, r1, c2, r2)
+    def runPSO(self, num_hidden, dataset, p_c, p_m , c1, c2, pop_size = 50, gens = 50, initial_pop = None):
+        velocity = pd.DataFrame(1, index = range(40), columns=range(50))
+        nextGen = self.generationPSO(num_hidden, dataset, p_c, p_m, c1, c2, velocity)
         initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
+        velocity = pd.DataFrame(1, index = range(len(initial_pop["Chromosome"][0])), columns=range(initial_pop.shape[0]))
         fitness_list = []
-        velocity = pd.DataFrame(index = range(initial_pop.shape[0]), columns=(range(initial_pop["Chomosome"].shape[1])))
-        def recurse(pop_df, velocity, i, curr_best_chr, curr_best_fit):
+        def recurse(pop_df, i, curr_best_chr, curr_best_fit):
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
             fitness_list.append(fit)
-            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df, velocity, chr, best_c), i + 1, best_c, best_f)
-        return recurse(initial_pop, velocity, 0, None, 0)
+            
+            return (fitness_list, best_c) if i == gens else recurse(nextGen(pop_df, chr, best_c), i + 1, best_c, best_f) 
+                # 
+        return recurse(initial_pop, 0, None, 0)
 
 
 

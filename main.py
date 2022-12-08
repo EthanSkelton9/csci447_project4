@@ -40,7 +40,7 @@ def mainEthan():
     DD = DataDictionary()
     data = DD.dataobject(True, "SoyBean")
     P = Population(data)
-    chr = P.runPSO(num_hidden=2, dataset = data.df, p_c=0.95, p_m=0.01, c1 = 1, r1 = 1, c2 = 1, r2 = 1, pop_size=50, gens=50)
+    chr = P.runPSO(num_hidden=2, dataset = data.df, p_c=0.95, p_m=0.01, c1 = 1, c2 = 1, pop_size=50, gens=50)
     # print(P.predict_with_chr(chr, 2))
     
 if __name__=="__main__":
