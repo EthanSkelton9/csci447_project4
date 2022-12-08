@@ -91,8 +91,10 @@ class CrossValidation:
     '''
     def error_GA(self, num_hidden, dataset):
         def f(hyps):
+            print("Find Best Chromosome!")
+            chr_time = time.time()
             chr = self.Pop.run(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
-            print("Chr: {}".format(chr))
+            print("Time to find best chromosome: {} Seconds.".format(time.time() - chr_time))
             return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
         return f
 
@@ -135,7 +137,10 @@ class CrossValidation:
             for (title, col) in data:
                 error_df[title] = col
             error = self.error_from_df(model, num_hidden, train_dict[fold], error_df)  #create error function
+            print("Calcuating Error For Each Hyp Series")
+            error_time = time.time()
             error_column = pd.Series(range(df_size)).map(error).values     #evaluate errors for hyperparameter df
+            print("Time to compute errors: {} Seconds".format(time.time() - error_time))
             min_error = error_column.min()
             error_df["Error"] = error_column
             best_row = error_df.loc[lambda df: df["Error"] == min_error].iloc[0]  #find the row with the lowest error
@@ -150,7 +155,10 @@ class CrossValidation:
             error_dfs = []
             while len(toSearch) > 0:
                 hypToFind = toSearch.pop()
+                print("Tune for {}.".format(hypToFind))
+                tune_time = time.time()
                 (bestValue, error_df) = tuneHyp(hyp_dict, toSearch, hypToFind)
+                print("Time to tune {}: {} Seconds".format(hypToFind, time.time() - tune_time))
                 hyp_dict[hypToFind] = [bestValue]
                 error_dfs.append(error_df)
             results_df = pd.concat(error_dfs).reset_index(drop=True)
@@ -166,9 +174,16 @@ class CrossValidation:
         analysisDF = pd.DataFrame(index = range(10), columns=hyp_list)
         error_column = []
         for fold in analysisDF.index:
+            print("====================================================================================================")
+            print("Training for Fold {}".format(fold))
+            train_time = time.time()
             hyp_dict = self.tuneHyps(model, num_hidden, train_dict, fold, hyp_list, start_hyp_dict)
+            print("Time to tune hyps for fold {}: {} Seconds".format(fold, time.time() - train_time))
             analysisDF.loc[fold, :] = pd.Series(hyp_dict)
+            print("Test for Fold {}".format(fold))
+            test_time = time.time()
             error_column.append(self.error_from_df(model, num_hidden, test_dict[fold], analysisDF)(fold))
+            print("Time to test for fold {}: {} Seconds".format(fold, time.time() - test_time))
         analysisDF["Error"] = error_column
         analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
                           "{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), num_hidden))
