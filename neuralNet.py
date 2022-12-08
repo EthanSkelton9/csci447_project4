@@ -459,7 +459,7 @@ class Neural_Net:
         if (self.data.classification):
             target = len(self.data.df.Target.unique())
             
-        hiddenlayers = self.data.hidden_vectors[numhidden-1] #check
+        hiddenlayers = self.data.hidden_vectors[numhidden-1] if numhidden > 0 else []
         nfeature = self.data.df.shape[1] - 1
         layers = [nfeature] + hiddenlayers + [target]
         #hiddenlayers.insert(0,nfeature)

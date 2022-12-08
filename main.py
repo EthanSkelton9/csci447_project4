@@ -18,7 +18,7 @@ def main_Ian(i):
         CV.test(start_hyp_dict)
     if i == 2:
         DD = DataDictionary()
-        data = DD.dataobject(True, "Glass")
+        data = DD.dataobject(True, "BreastCancer")
         CV = CrossValidation(data)
         start_hyp_dict = {'p_c': [0.75, 0.8, 0.85, 0.9, 0.95],
                           'p_m': [0.01, 0.02, 0.03, 0.04, 0.05],
@@ -44,8 +44,8 @@ def mainEthan():
     # print(P.predict_with_chr(chr, 2))
     
 if __name__=="__main__":
-    #main_Ian(2)
-    mainEthan()
+    main_Ian(2)
+    #mainEthan()
 
 
     
