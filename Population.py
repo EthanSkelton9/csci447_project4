@@ -219,7 +219,7 @@ class Population:
                 chrome_at_i = pop_df["Chromosome"][i]
                 neg_chrome_at_i = [ -x for x in chrome_at_i]
                 #v[i].add(c1*r1*((neg_chrome_at_i).add(pbest)) + c2*r2*((neg_chrome_at_i).add(gbest)))
-                v[i] = v[i] + c*r*(np.array(neg_chrome_at_i) + lpbest) + c*r*(np.array(neg_chrome_at_i) + lgbest)
+                v[i] = w*v[i] + c*r*(np.array(neg_chrome_at_i) + lpbest) + c*r*(np.array(neg_chrome_at_i) + lgbest)
                 chrome_at_i += v[i]
             return self.populationDF(num_hidden,  pd.Series(pop_df["Chromosome"]), dataset)
         return f

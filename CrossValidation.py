@@ -163,7 +163,7 @@ class CrossValidation:
                 error_dfs.append(error_df)
             results_df = pd.concat(error_dfs).reset_index(drop=True)
             results_df.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
-                              "{}_{}_HiddenLayers_Error_Fold_{}.csv".format(str(self.data), num_hidden, fold))
+                              "{}_{}_{}_HiddenLayers_Error_Fold_{}.csv".format(str(self.data), model, num_hidden, fold))
             return pd.Series(hyp_list, index=hyp_list).map(lambda hyp: hyp_dict[hyp][0])
 
         return linearSearch(copy(start_hyp_dict), set(hyp_list))
@@ -186,7 +186,7 @@ class CrossValidation:
             print("Time to test for fold {}: {} Seconds".format(fold, time.time() - test_time))
         analysisDF["Error"] = error_column
         analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
-                          "{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), num_hidden))
+                          "{}_{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), model, num_hidden))
 
 
     def test(self, start_hyp_dict):
