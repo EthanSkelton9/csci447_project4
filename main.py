@@ -30,6 +30,22 @@ def main_Ian(i):
         P = Population(data)
         (fitness, chr) = P.run(num_hidden=2, p_c=0.95, p_m=0.01, pop_size=50, gens=50)
         print(P.predict_with_chr(chr, 2))
+    if i == 4:
+        DD = DataDictionary()
+        data = DD.dataobject(True, "Abalone")
+        CV = CrossValidation(data)
+        start_hyp_dict = {'p_w': [0.1, 0.3, 0.5, 0.7, 0.9], 
+                          'p_c': [1.3, 1.5, 1.7, 1.9, 2.1],
+                          'pop_size': [10, 20, 30, 40, 50]}
+        CV.analysis("PSO",0,['p_w', 'p_c', 'pop_size'], start_hyp_dict)
+    if i == 5:
+        DD = DataDictionary()
+        data = DD.dataobject(True, "Abalone")
+        CV = CrossValidation(data)
+        start_hyp_dict = {'p_w': [0.1, 0.3, 0.5, 0.7, 0.9], 
+                          'p_c': [1.3, 1.5, 1.7, 1.9, 2.1],
+                          'pop_size': [10, 20, 30, 40, 50]}
+        CV.analysis("GA",2,['p_w', 'p_c', 'pop_size'], start_hyp_dict)
 
 
 
@@ -44,7 +60,7 @@ def mainEthan():
     # print(P.predict_with_chr(chr, 2))
     
 if __name__=="__main__":
-    main_Ian(2)
+    main_Ian(4)
     #mainEthan()
 
 

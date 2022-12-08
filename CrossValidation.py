@@ -82,9 +82,7 @@ class CrossValidation:
     def error_from_series(self, model, num_hidden, dataset):
         if model == 'GA': f = self.error_GA(num_hidden, dataset)
         if model == 'DE': f = self.error_DE(num_hidden, dataset)
-        '''
-        if model == 'PSO': f = self.error_PSO(dataset)
-        '''
+        if model == 'PSO': f = self.error_PSO(num_hidden, dataset)
         return f
     '''
     @param num_hidden: an integer that tells us how many hidden layers we are using
@@ -103,6 +101,12 @@ class CrossValidation:
     def error_DE(self, num_hidden, dataset):
         def f(hyps):
             chr = self.Pop.runDE(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
+            return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
+        return f
+    
+    def error_PSO(self, num_hidden, dataset):
+        def f(hyps):
+            chr = self.Pop.runPSO(num_hidden=num_hidden, dataset = dataset, w=hyps["p_w"], c=hyps["p_c"], pop_size=hyps["pop_size"])
             return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
         return f
 
