@@ -168,7 +168,12 @@ class CrossValidation:
             return pd.Series(hyp_list, index=hyp_list).map(lambda hyp: hyp_dict[hyp][0])
 
         return linearSearch(copy(start_hyp_dict), set(hyp_list))
-
+    '''
+    @param model: a string that tells the model we are using (either, GA, DE, or PSO)
+    @param num_hidden: an integer that tells us how many hidden layers we are using
+    @param hyp_list: a list of hyperparameters we are tuning for
+    @param start_hyp_dict: a starting dictionary that inputs hyperparameter and returns list of values to tune over
+    '''
     def analysis(self, model, num_hidden, hyp_list, start_hyp_dict):
         total_time = time.time()
         p = self.stratified_partition(10)
