@@ -37,12 +37,12 @@ def main_Ian(i):
         CV.analysis("PSO",1,['p_w', 'p_c', 'pop_size'], start_hyp_dict)
     if i == 5:
         DD = DataDictionary()
-        data = DD.dataobject(True, "Hardware")
+        data = DD.dataobject(True, "Abalone")
         CV = CrossValidation(data)
         start_hyp_dict = {'p_c': [0.75, 0.8, 0.85, 0.9, 0.95],
                           'p_m': [0.01, 0.02, 0.03, 0.04, 0.05],
                           'pop_size': [10, 20, 30, 40, 50]}
-        CV.analysis("DE",0,['p_c', 'p_m', 'pop_size'], start_hyp_dict)
+        CV.analysis("DE",2,['p_c', 'p_m', 'pop_size'], start_hyp_dict)
 
 
 
