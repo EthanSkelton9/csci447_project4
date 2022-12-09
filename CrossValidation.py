@@ -84,10 +84,22 @@ class CrossValidation:
         if model == 'DE': f = self.error_DE(num_hidden, dataset)
         if model == 'PSO': f = self.error_PSO(num_hidden, dataset)
         return f
+
+    '''
+    @param model: a string that tells the model we are using (either, GA, DE, or PSO)
+    @param num_hidden: an integer that tells us how many hidden layers we are using
+    @param dataset: a pandas dataframe that is a subset of the data
+    @return: function that inputs a series of hyperparameters and returns predicted set given model and hyps
+    '''
+    def predict_from_series(self, model, num_hidden, dataset):
+        if model == 'GA': f = self.predict_GA(num_hidden, dataset)
+        if model == 'DE': f = self.predict_DE(num_hidden, dataset)
+        if model == 'PSO': f = self.predict_PSO(num_hidden, dataset)
+        return f
     '''
     @param num_hidden: an integer that tells us how many hidden layers we are using
     @param dataset: a pandas dataframe that is a subset of the data
-    @return: function that inputs a series of hyperparameters and returns the error of GE for those hyps
+    @return: function that inputs a series of hyperparameters and returns the error of GA for those hyps
     '''
     def error_GA(self, num_hidden, dataset):
         def f(hyps):
@@ -98,16 +110,62 @@ class CrossValidation:
             return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
         return f
 
+    '''
+    @param num_hidden: an integer that tells us how many hidden layers we are using
+    @param dataset: a pandas dataframe that is a subset of the data
+    @return: function that inputs a series of hyperparameters and returns predicted set using GA
+    '''
+    def predict_GA(self, num_hidden, dataset):
+        def f(hyps):
+            #print("Find Best Chromosome!")
+            #chr_time = time.time()
+            chr = self.Pop.run(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
+            #print("Time to find best chromosome: {} Seconds.".format(time.time() - chr_time))
+            return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=False)
+        return f
+
+    '''
+   @param num_hidden: an integer that tells us how many hidden layers we are using
+   @param dataset: a pandas dataframe that is a subset of the data
+   @return: function that inputs a series of hyperparameters and returns the error of DE for those hyps
+    '''
     def error_DE(self, num_hidden, dataset):
         def f(hyps):
             chr = self.Pop.runDE(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
             return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
         return f
-    
+
+    '''
+    @param num_hidden: an integer that tells us how many hidden layers we are using
+    @param dataset: a pandas dataframe that is a subset of the data
+    @return: function that inputs a series of hyperparameters and returns predicted set using DE
+    '''
+    def predict_DE(self, num_hidden, dataset):
+        def f(hyps):
+            chr = self.Pop.runDE(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
+            return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=False)
+        return f
+
+    '''
+   @param num_hidden: an integer that tells us how many hidden layers we are using
+   @param dataset: a pandas dataframe that is a subset of the data
+   @return: function that inputs a series of hyperparameters and returns the error of PSO for those hyps
+    '''
     def error_PSO(self, num_hidden, dataset):
         def f(hyps):
             chr = self.Pop.runPSO(num_hidden=num_hidden, dataset = dataset, w=hyps["p_w"], c=hyps["p_c"], pop_size=hyps["pop_size"])
             return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
+        return f
+
+    '''
+    @param num_hidden: an integer that tells us how many hidden layers we are using
+    @param dataset: a pandas dataframe that is a subset of the data
+    @return: function that inputs a series of hyperparameters and returns predicted set using PSO
+    '''
+    def predict_PSO(self, num_hidden, dataset):
+        def f(hyps):
+            chr = self.Pop.runPSO(num_hidden=num_hidden, dataset = dataset, w=hyps["p_w"], c=hyps["p_c"], pop_size=hyps["pop_size"])
+            return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=False)
         return f
 
     '''
@@ -186,21 +244,16 @@ class CrossValidation:
             train_time = time.time()
             hyp_dict = self.tuneHyps(model, num_hidden, train_dict, fold, hyp_list, start_hyp_dict) #get best hyperparameters for fold
             print("Time to tune hyps for fold {}: {} Seconds".format(fold, time.time() - train_time))
-            analysisDF.loc[fold, :] = pd.Series(hyp_dict)
+            analysisDF.loc[fold, :] = pd.Series(hyp_dict)   #make a row of best hyperparameters for fold
             print("Test for Fold {}".format(fold))
             test_time = time.time()
-            error_column.append(self.error_from_df(model, num_hidden, test_dict[fold], analysisDF)(fold))
+            error_column.append(self.error_from_df(model, num_hidden, test_dict[fold], analysisDF)(fold)) #get corresponding error on test fold
             print("Time to test for fold {}: {} Seconds".format(fold, time.time() - test_time))
         analysisDF["Error"] = error_column
         analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
                           "{}_Model_{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), model, num_hidden))
         print("Total Time: {}".format(time.time() - total_time))
 
-
-    def test(self, start_hyp_dict):
-        p = self.stratified_partition(10)
-        (train_dict, test_dict) = self.training_test_dicts(self.data.df, p)
-        self.tuneHyps("GA", 0, train_dict, 0, ['p_c', 'p_m', 'pop_size'], start_hyp_dict)
 
 
 

@@ -146,9 +146,9 @@ class Population:
         nextGen = self.generation(num_hidden, dataset, p_c, p_m)
         initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
-            print("~~~~~~~~~~~~~~~~~~~~~")
-            print("Current Best Fitness: {}".format(curr_best_fit))
-            print("Generation: {}".format(i))
+            #print("~~~~~~~~~~~~~~~~~~~~~")
+            #print("Current Best Fitness: {}".format(curr_best_fit))
+            #print("Generation: {}".format(i))
             #gen_time = time.time()
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
@@ -167,7 +167,6 @@ class Population:
     '''
     def predict_with_chr(self, dataset, chr, num_hidden, error = False):
         return self.NN.predict_set(df = dataset)(self.NN.list_to_matrix(chr, num_hidden), error = error)
-
 
     '''
     @param num_hidden: the number of hidden layers
@@ -199,9 +198,9 @@ class Population:
         initial_pop = self.createPopulation(num_hidden, dataset, pop_size) if initial_pop is None else initial_pop
         fitness_list = []
         def recurse(pop_df, i, curr_best_chr, curr_best_fit):
-            print("~~~~~~~~~~~")
-            print("Current Best Fitness: {}".format(curr_best_fit))
-            print("Generation: {}".format(i))
+            #print("~~~~~~~~~~~")
+            #print("Current Best Fitness: {}".format(curr_best_fit))
+            #print("Generation: {}".format(i))
             (chr, fit) = self.getBest(pop_df)
             (best_c, best_f) = (chr, fit) if fit > curr_best_fit else (curr_best_chr, curr_best_fit)
             fitness_list.append(fit)
