@@ -82,9 +82,7 @@ class CrossValidation:
     def error_from_series(self, model, num_hidden, dataset):
         if model == 'GA': f = self.error_GA(num_hidden, dataset)
         if model == 'DE': f = self.error_DE(num_hidden, dataset)
-        '''
-        if model == 'PSO': f = self.error_PSO(dataset)
-        '''
+        if model == 'PSO': f = self.error_PSO(num_hidden, dataset)
         return f
     '''
     @param num_hidden: an integer that tells us how many hidden layers we are using
@@ -103,6 +101,12 @@ class CrossValidation:
     def error_DE(self, num_hidden, dataset):
         def f(hyps):
             chr = self.Pop.runDE(num_hidden=num_hidden, dataset = dataset, p_c=hyps["p_c"], p_m=hyps["p_m"], pop_size=hyps["pop_size"])
+            return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
+        return f
+    
+    def error_PSO(self, num_hidden, dataset):
+        def f(hyps):
+            chr = self.Pop.runPSO(num_hidden=num_hidden, dataset = dataset, w=hyps["p_w"], c=hyps["p_c"], pop_size=hyps["pop_size"])
             return self.Pop.predict_with_chr(dataset, chr, num_hidden, error=True)
         return f
 
@@ -150,6 +154,7 @@ class CrossValidation:
         def linearSearch(hyp_dict, toSearch):
             error_dfs = []
             while len(toSearch) > 0:
+                print("##############################")
                 hypToFind = toSearch.pop()
                 print("Tune for {}.".format(hypToFind))
                 tune_time = time.time()
@@ -159,12 +164,13 @@ class CrossValidation:
                 error_dfs.append(error_df)
             results_df = pd.concat(error_dfs).reset_index(drop=True)
             results_df.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
-                              "{}_{}_HiddenLayers_Error_Fold_{}.csv".format(str(self.data), num_hidden, fold))
+                              "{}_Model_{}_{}_HiddenLayers_Error_Fold_{}.csv".format(str(self.data), model, num_hidden, fold))
             return pd.Series(hyp_list, index=hyp_list).map(lambda hyp: hyp_dict[hyp][0])
 
         return linearSearch(copy(start_hyp_dict), set(hyp_list))
 
     def analysis(self, model, num_hidden, hyp_list, start_hyp_dict):
+        total_time = time.time()
         p = self.stratified_partition(10)
         (train_dict, test_dict) = self.training_test_dicts(self.data.df, p)
         analysisDF = pd.DataFrame(index = range(10), columns=hyp_list)
@@ -182,7 +188,8 @@ class CrossValidation:
             print("Time to test for fold {}: {} Seconds".format(fold, time.time() - test_time))
         analysisDF["Error"] = error_column
         analysisDF.to_csv(os.getcwd() + '\\' + str(self.data) + '\\' +
-                          "{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), num_hidden))
+                          "{}_Model_{}_{}_HiddenLayers_Analysis.csv".format(str(self.data), model, num_hidden))
+        print("Total Time: {}".format(time.time() - total_time))
 
 
     def test(self, start_hyp_dict):
