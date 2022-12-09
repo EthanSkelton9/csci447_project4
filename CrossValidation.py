@@ -177,14 +177,14 @@ class CrossValidation:
     def analysis(self, model, num_hidden, hyp_list, start_hyp_dict):
         total_time = time.time()
         p = self.stratified_partition(10)
-        (train_dict, test_dict) = self.training_test_dicts(self.data.df, p)
+        (train_dict, test_dict) = self.training_test_dicts(self.data.df, p) #get training sets and test sets
         analysisDF = pd.DataFrame(index = range(10), columns=hyp_list)
         error_column = []
         for fold in analysisDF.index:
             print("====================================================================================================")
             print("Training for Fold {}".format(fold))
             train_time = time.time()
-            hyp_dict = self.tuneHyps(model, num_hidden, train_dict, fold, hyp_list, start_hyp_dict)
+            hyp_dict = self.tuneHyps(model, num_hidden, train_dict, fold, hyp_list, start_hyp_dict) #get best hyperparameters for fold
             print("Time to tune hyps for fold {}: {} Seconds".format(fold, time.time() - train_time))
             analysisDF.loc[fold, :] = pd.Series(hyp_dict)
             print("Test for Fold {}".format(fold))
