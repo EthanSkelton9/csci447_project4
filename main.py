@@ -32,12 +32,12 @@ def main_Ian(i):
         print(P.predict_with_chr(chr, 2))
     if i == 4:
         DD = DataDictionary()
-        data = DD.dataobject(True, "BreastCancer")
+        data = DD.dataobject(True, "Glass")
         CV = CrossValidation(data)
         start_hyp_dict = {'p_w': [0.1, 0.3, 0.5, 0.7, 0.9], 
                           'p_c': [1.3, 1.5, 1.7, 1.9, 2.1],
                           'pop_size': [10, 20, 30, 40, 50]}
-        CV.analysis("PSO",2,['p_w', 'p_c', 'pop_size'], start_hyp_dict)
+        CV.analysis("PSO",1,['p_w', 'p_c', 'pop_size'], start_hyp_dict)
     if i == 5:
         DD = DataDictionary()
         data = DD.dataobject(True, "Abalone")
