@@ -12,7 +12,11 @@ from Video import Video
 
 def main_Ian(i):
     if i == 1:
+        Video().sampleOutput()
+        Video().operations_GA()
         Video().operations_DE()
+        Video().operations_PSO()
+        Video().average_performance()
     if i == 2:
         DD = DataDictionary()
         data = DD.dataobject(True, "BreastCancer")
@@ -57,7 +61,7 @@ def mainEthan():
     # print(P.predict_with_chr(chr, 2))
     
 if __name__=="__main__":
-    main_Ian(4)
+    main_Ian(1)
     #main_Ian(5)
     #mainEthan()
 
